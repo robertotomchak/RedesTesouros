@@ -2,6 +2,8 @@
     Define a mensagem, bem como seu protocolo
     Define também funções úteis de verificação e busca de mensagem
 */
+#ifndef MENSAGEM_H
+#define MENSAGEM_H 
 
 typedef unsigned char uchar_t;
 
@@ -73,3 +75,5 @@ parâmetros:
 retorno: void
 */
 void libera_protocolo(protocolo_t *protocolo);
+
+#endif
