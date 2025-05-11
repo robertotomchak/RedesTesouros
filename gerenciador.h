@@ -59,4 +59,11 @@ retorno: 0 (ack), 1 (nack) ou -1 (timeout)
 */
 int espera_ack(gerenciador_t *gerenciador);
 
+/*
+libera_gerenciador: libera memória alocada pelo gerenciador
+parâmetros:
+    gerenciador: ponteiro para o gerenciador
+*/
+void libera_gerenciador(gerenciador_t *gerenciador);
+
 #endif
