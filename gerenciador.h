@@ -1,0 +1,62 @@
+/*
+    Gerencia o uso da rede
+    Tanto envio quando recebimento de mensagens
+*/
+
+#ifndef GERENCIADOR_H
+#define GERENCIADOR_H
+
+#include "mensagem.h"
+
+/*
+Estrutura do gerenciador
+*/
+typedef struct {
+    int socket;  // fd do socket
+    protocolo_t *ultimo_enviado;
+    protocolo_t *ultimo_recebido;
+} gerenciador_t;
+
+// quantas sequências podem ser identificadas antes de recomeçar
+// 5 bits
+#define TAM_SEQUENCIA 1 << 5
+
+// tempo do time out (em milisegundos)
+#define TIMEOUT 1000
+
+
+/*
+inicia_gerenciador: inicia a estrutura do gerenciador
+parâmetros:
+    gerenciador: ponteiro para o gerenciador
+    nome_interface_rede: string com nome da rede (descoberto com ip addr)
+retorno: 0 se houve sucesso; != 0 se houve erro
+*/
+int inicia_gerenciador(gerenciador_t *gerenciador, char *nome_interface_rede);
+
+/*
+envia_mensagem: envia uma mensagem na rede
+parâmetros:
+    gerenciador: ponteiro para o gerenciador
+    mensagem: ponteiro para mensagem a ser enviada
+retorno: 0 se houve sucesso; != 0 se houve erro
+*/
+int envia_mensagem(gerenciador_t *gerenciador, mensagem_t *mensagem);
+
+/*
+recebe_mensagem: receb uma mensagem da rede
+parâmetros:
+    gerenciador: ponteiro para o gerenciador
+retorno: ponteiro para mensagem recebida; NULL se não recebeu nenhuma mensagem
+*/
+mensagem_t *recebe_mensagem(gerenciador_t *gerenciador);
+
+/*
+espera_ack: espera a outra máquina avisar que recebeu (ou não) uma mensagem
+parâmetros:
+    gerenciador: ponteiro para o gerenciador
+retorno: 0 (ack), 1 (nack) ou -1 (timeout)
+*/
+int espera_ack(gerenciador_t *gerenciador);
+
+#endif
