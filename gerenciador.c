@@ -85,7 +85,8 @@ int envia_mensagem(gerenciador_t *gerenciador, uchar_t tamanho, uchar_t tipo, uc
     send(gerenciador->socket, novo_protocolo, PROTOCOLO_TAM_MAX, 0);
 
     // cria mensagem desse protocolo e salva
-    mensagem_t *nova_mensagem = cria_mensagem(novo_protocolo);
+    int _;  // não precisamos verificar o erro da mensagem
+    mensagem_t *nova_mensagem = cria_mensagem(novo_protocolo, &_);
     libera_protocolo(novo_protocolo);
     if (gerenciador->ultima_enviada)
         libera_mensagem(gerenciador->ultima_enviada);
@@ -98,34 +99,53 @@ int envia_mensagem(gerenciador_t *gerenciador, uchar_t tamanho, uchar_t tipo, uc
 recebe_mensagem: recebe uma mensagem da rede
 parâmetros:
     gerenciador: ponteiro para o gerenciador
+    resposta: armazena o tipo de resposta a ser enviado (ack -> 0, nack -> 1, não responder -> -1)
 retorno: ponteiro para mensagem recebida; NULL se não recebeu nenhuma mensagem
 */
-mensagem_t *recebe_mensagem(gerenciador_t *gerenciador) {
+mensagem_t *recebe_mensagem(gerenciador_t *gerenciador, int *resposta) {
     // le protocolo da rede
     uchar_t buffer[PROTOCOLO_TAM_MAX];
     recv(gerenciador->socket, buffer, PROTOCOLO_TAM_MAX, 0);
     
     // cria mensagem (se válida)
-    mensagem_t *nova_mensagem = obtem_mensagem(buffer);
+    int erro;
+    mensagem_t *nova_mensagem = obtem_mensagem(buffer, &erro);
     // se mensagem não for válida, faz nada
-    if (!nova_mensagem)
+    if (!nova_mensagem) {
+        // se não tem marcador de início, não era mensagem
+        if (erro == MSG_ERRO_MARCADOR_INICIO)
+            *resposta = -1;
+        // se era erro no checksum, enviar um nack
+        else if (erro == MSG_ERRO_CHECKSUM)
+            *resposta = 1;  
         return NULL;
+    }
 
     // verifica se sequencia ta correta
+    // se for a mesma sequencia da última, não processa e devolta ack
+    if (gerenciador->ultima_recebida->sequencia == nova_mensagem->sequencia) {
+        *resposta = 0;
+        return NULL;
+    }
     // se for primeira mensagem e sequencia = 0 ou sequencia = sequencia_anterior + 1
     uchar_t sequencia_correta;
     if (gerenciador->ultima_recebida)
         sequencia_correta = (gerenciador->ultima_recebida->sequencia + 1) % TAM_SEQUENCIA;
     else
         sequencia_correta = 0;
-    if (nova_mensagem->sequencia != sequencia_correta)
+    if (nova_mensagem->sequencia != sequencia_correta) {
+        // sequência incorreta -> enviar nack
+        *resposta = 1;
         return NULL;
+    }
 
     // libera antiga mensagem e guarda nova
     if (gerenciador->ultima_recebida)
         libera_mensagem(gerenciador->ultima_recebida);
     gerenciador->ultima_recebida = nova_mensagem;
 
+    // mensagem recebida e será processada -> enviar ack
+    *resposta = 0;
     return nova_mensagem;
 }
 

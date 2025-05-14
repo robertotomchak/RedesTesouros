@@ -49,9 +49,10 @@ int envia_mensagem(gerenciador_t *gerenciador, uchar_t tamanho, uchar_t tipo, uc
 recebe_mensagem: recebe uma mensagem da rede
 parâmetros:
     gerenciador: ponteiro para o gerenciador
+    resposta: armazena o tipo de resposta a ser enviado (ack -> 0, nack -> 1, não responder -> -1)
 retorno: ponteiro para mensagem recebida; NULL se não recebeu nenhuma mensagem
 */
-mensagem_t *recebe_mensagem(gerenciador_t *gerenciador);
+mensagem_t *recebe_mensagem(gerenciador_t *gerenciador, int *resposta);
 
 /*
 espera_ack: espera a outra máquina avisar que recebeu (ou não) uma mensagem

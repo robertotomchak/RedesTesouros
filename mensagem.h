@@ -38,15 +38,21 @@ typedef struct {
 // marcador de início de mensagem
 #define MARCADOR_INICIO 0b01111110
 
+// erros no protocolo que indicam que não é mensagem / mensagem com erros
+#define MSG_ERRO_MARCADOR_INICIO 1  // não contêm marcado de início
+#define MSG_ERRO_CHECKSUM 2         // chcksum falhou
+#define MSG_ERRO_SEQUENCIA 3        // valor de sequência inesperado
+
 
 /*
 cria_mensagem: cria mensagem a partir do protocolo
 parâmetros:
     protocolo: ponteiro para protocolo a ser interpretado
+    erro: armazena qual foi o erro na mensagem, se não for válida
 retorno: ponteiro para mensagem criada (NULL se não houver mensagem)
 obs: memória é alocada, deve ser liberada após uso com libera_mensagem()
 */
-mensagem_t *cria_mensagem(protocolo_t *protocolo);
+mensagem_t *cria_mensagem(protocolo_t *protocolo, int *erro);
 
 /*
 cria_protocolo: cria protocolo a partir de seus metadados e dados
@@ -64,10 +70,11 @@ protocolo_t *cria_protocolo(uchar_t tamanho, uchar_t sequencia, uchar_t tipo, uc
 obtem_mensagem: cria mensagem a partir de um buffer
 parâmetros:
     buffer: vetor de bytes (deve ter tamanho PROTOCOLO_TAM_MAX) que contém a mensagem
+    erro: armazena qual foi o erro na mensagem, se não for válida
 retorno: ponteiro para mensagem criada
 obs: memória é alocada, deve ser liberada após uso com libera_mensagem (NULL se não houver mensagem)
 */
-mensagem_t *obtem_mensagem(uchar_t *buffer);
+mensagem_t *obtem_mensagem(uchar_t *buffer, int *erro);
 
 /*
 libera_mensagem: libera memória alocada por mensagem

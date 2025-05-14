@@ -38,18 +38,24 @@ uchar_t calcula_checksum(protocolo_t *protocolo) {
 cria_mensagem: cria mensagem a partir do protocolo
 parâmetros:
     protocolo: ponteiro para protocolo a ser interpretado
+    erro: armazena qual foi o erro na mensagem, se não for válida
 retorno: ponteiro para mensagem criada (NULL se não houver mensagem)
 obs: memória é alocada, deve ser liberada após uso com libera_mensagem()
 */
-mensagem_t *cria_mensagem(protocolo_t *protocolo) {
+mensagem_t *cria_mensagem(protocolo_t *protocolo, int *erro) {
     // possui marcador de início?
-    if (protocolo->marcador_inicio != MARCADOR_INICIO)
+    if (protocolo->marcador_inicio != MARCADOR_INICIO) {
+        *erro = MSG_ERRO_MARCADOR_INICIO;
         return NULL;
+    }
     // checksum deu problema?
-    if (calcula_checksum(protocolo) != protocolo->checksum)
+    if (calcula_checksum(protocolo) != protocolo->checksum) {
+        *erro = MSG_ERRO_CHECKSUM;
         return NULL;
+    }
 
     // se não houve problemas, criar mensagem
+    *erro = 0;
     uchar_t tamanho = protocolo->tamanho;
     mensagem_t *mensagem = malloc(sizeof(protocolo_t) + tamanho);
     mensagem->tamanho = tamanho;
@@ -84,12 +90,13 @@ protocolo_t *cria_protocolo(uchar_t tamanho, uchar_t sequencia, uchar_t tipo, uc
 obtem_mensagem: cria mensagem a partir de um buffer
 parâmetros:
     buffer: vetor de bytes (deve ter tamanho PROTOCOLO_TAM_MAX) que contém a mensagem
+    erro: armazena qual foi o erro na mensagem, se não for válida
 retorno: ponteiro para mensagem criada
 obs: memória é alocada, deve ser liberada após uso com libera_mensagem (NULL se não houver mensagem)
 */
-mensagem_t *obtem_mensagem(uchar_t *buffer) {
+mensagem_t *obtem_mensagem(uchar_t *buffer, int *erro) {
     // pega campo de tamanho
-    // como tamanho tem 7 bits, jogar o último bit fora
+    // como tamanho tem 7 bits, jogar o bit mais significativo fora (little endian)
     uchar_t tamanho = buffer[1] & 0b01111111;
     // cria um protocolo sem verificar se está correto
     protocolo_t *protocolo = malloc(sizeof(protocolo_t) + tamanho);
@@ -97,7 +104,7 @@ mensagem_t *obtem_mensagem(uchar_t *buffer) {
     memcpy(protocolo, buffer, sizeof(protocolo_t) + tamanho);
 
     // verifica se protocolo está correto e cria mensagem se estiver
-    mensagem_t *mensagem = cria_mensagem(protocolo);
+    mensagem_t *mensagem = cria_mensagem(protocolo, erro);
 
     // libera protocolo temporário e retorna mensagem
     free(protocolo);
