@@ -21,8 +21,8 @@ typedef struct {
 // 5 bits
 #define TAM_SEQUENCIA 1 << 5
 
-// tempo do time out (em milisegundos)
-#define TIMEOUT 1000
+// tempo do time out (em segundos)
+#define TIMEOUT 60
 
 
 /*
@@ -58,9 +58,10 @@ mensagem_t *recebe_mensagem(gerenciador_t *gerenciador, int *resposta);
 espera_ack: espera a outra máquina avisar que recebeu (ou não) uma mensagem
 parâmetros:
     gerenciador: ponteiro para o gerenciador
+    tipo: armazena o tipo da mensagem recebida
 retorno: 0 (ack), 1 (nack) ou -1 (timeout)
 */
-int espera_ack(gerenciador_t *gerenciador);
+int espera_ack(gerenciador_t *gerenciador, uchar_t *tipo);
 
 /*
 libera_gerenciador: libera memória alocada pelo gerenciador
