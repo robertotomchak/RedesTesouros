@@ -33,7 +33,7 @@ typedef struct {
 } mensagem_t;
 
 // metadados + dados de 2^7 bytes;
-#define PROTOCOLO_TAM_MAX sizeof(protocolo_t) + (1 << 7);
+#define PROTOCOLO_TAM_MAX sizeof(protocolo_t) + (1 << 7)
 
 // marcador de início de mensagem
 #define MARCADOR_INICIO 0b01111110
@@ -59,6 +59,15 @@ retorno: ponteiro para protocolo criado
 obs: memória é alocada, deve ser liberada após uso com libera_protocolo
 */
 protocolo_t *cria_protocolo(uchar_t tamanho, uchar_t sequencia, uchar_t tipo, uchar_t *dados);
+
+/*
+obtem_mensagem: cria mensagem a partir de um buffer
+parâmetros:
+    buffer: vetor de bytes (deve ter tamanho PROTOCOLO_TAM_MAX) que contém a mensagem
+retorno: ponteiro para mensagem criada
+obs: memória é alocada, deve ser liberada após uso com libera_mensagem (NULL se não houver mensagem)
+*/
+mensagem_t *obtem_mensagem(uchar_t *buffer);
 
 /*
 libera_mensagem: libera memória alocada por mensagem

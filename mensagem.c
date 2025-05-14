@@ -81,6 +81,31 @@ protocolo_t *cria_protocolo(uchar_t tamanho, uchar_t sequencia, uchar_t tipo, uc
 }
 
 /*
+obtem_mensagem: cria mensagem a partir de um buffer
+parâmetros:
+    buffer: vetor de bytes (deve ter tamanho PROTOCOLO_TAM_MAX) que contém a mensagem
+retorno: ponteiro para mensagem criada
+obs: memória é alocada, deve ser liberada após uso com libera_mensagem (NULL se não houver mensagem)
+*/
+mensagem_t *obtem_mensagem(uchar_t *buffer) {
+    // pega campo de tamanho
+    // como tamanho tem 7 bits, jogar o último bit fora
+    uchar_t tamanho = buffer[1];
+    tamanho = tamanho >> 1;
+    // cria um protocolo sem verificar se está correto
+    protocolo_t *protocolo = malloc(sizeof(protocolo_t) + tamanho);
+    // copia tudo do buffer para o protocolo
+    memcpy(protocolo, buffer, sizeof(protocolo_t) + tamanho);
+
+    // verifica se protocolo está correto e cria mensagem se estiver
+    mensagem_t *mensagem = cria_mensagem(protocolo);
+
+    // libera protocolo temporário e retorna mensagem
+    free(protocolo);
+    return mensagem;
+}
+
+/*
 libera_mensagem: libera memória alocada por mensagem
 parâmetros:
     mensagem: ponteiro para mensagem a ser liberada

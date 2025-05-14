@@ -13,8 +13,8 @@ Estrutura do gerenciador
 */
 typedef struct {
     int socket;  // fd do socket
-    protocolo_t *ultimo_enviado;
-    protocolo_t *ultimo_recebido;
+    mensagem_t *ultima_enviada;
+    mensagem_t *ultima_recebida;
 } gerenciador_t;
 
 // quantas sequências podem ser identificadas antes de recomeçar
@@ -38,13 +38,15 @@ int inicia_gerenciador(gerenciador_t *gerenciador, char *nome_interface_rede);
 envia_mensagem: envia uma mensagem na rede
 parâmetros:
     gerenciador: ponteiro para o gerenciador
-    mensagem: ponteiro para mensagem a ser enviada
+    tamanho (7 bits): quantos bytes tem dados
+    tipo (4 bits): qual o tipo de mensagem
+    dados (<tamanho> bytes): ponteiro para vetor de dados
 retorno: 0 se houve sucesso; != 0 se houve erro
 */
-int envia_mensagem(gerenciador_t *gerenciador, mensagem_t *mensagem);
+int envia_mensagem(gerenciador_t *gerenciador, uchar_t tamanho, uchar_t tipo, uchar_t *dados);
 
 /*
-recebe_mensagem: receb uma mensagem da rede
+recebe_mensagem: recebe uma mensagem da rede
 parâmetros:
     gerenciador: ponteiro para o gerenciador
 retorno: ponteiro para mensagem recebida; NULL se não recebeu nenhuma mensagem
