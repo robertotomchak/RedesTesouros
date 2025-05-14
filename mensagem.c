@@ -90,8 +90,7 @@ obs: memória é alocada, deve ser liberada após uso com libera_mensagem (NULL 
 mensagem_t *obtem_mensagem(uchar_t *buffer) {
     // pega campo de tamanho
     // como tamanho tem 7 bits, jogar o último bit fora
-    uchar_t tamanho = buffer[1];
-    tamanho = tamanho >> 1;
+    uchar_t tamanho = buffer[1] & 0b01111111;
     // cria um protocolo sem verificar se está correto
     protocolo_t *protocolo = malloc(sizeof(protocolo_t) + tamanho);
     // copia tudo do buffer para o protocolo

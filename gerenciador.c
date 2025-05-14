@@ -107,7 +107,6 @@ mensagem_t *recebe_mensagem(gerenciador_t *gerenciador) {
     
     // cria mensagem (se válida)
     mensagem_t *nova_mensagem = obtem_mensagem(buffer);
-
     // se mensagem não for válida, faz nada
     if (!nova_mensagem)
         return NULL;
