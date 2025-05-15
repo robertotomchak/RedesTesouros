@@ -64,6 +64,14 @@ retorno: 0 (ack), 1 (nack) ou -1 (timeout)
 int espera_ack(gerenciador_t *gerenciador, mensagem_t **mensagem_ptr);
 
 /*
+reenvia: envia novamente a última mensagem enviada
+parâmetros:
+    gerenciador: ponteiro para o gerenciador
+    retorno: 0 se houve sucesso; != 0 se houve erro
+*/
+int reenvia(gerenciador_t *gerenciador);
+
+/*
 libera_gerenciador: libera memória alocada pelo gerenciador
 parâmetros:
     gerenciador: ponteiro para o gerenciador
