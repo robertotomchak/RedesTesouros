@@ -3,7 +3,7 @@
     OBJS = main.o mensagem.o gerenciador.o
 
 # Compilador
-    CC     = gcc
+    CC   = gcc
 
 # Acrescentar onde apropriado as opções para incluir uso da biblioteca LIKWID
     CFLAGS = -Wall -Werror
