@@ -134,7 +134,7 @@ mensagem_t *recebe_mensagem(gerenciador_t *gerenciador, int *resposta) {
 
     // verifica se sequencia ta correta
     // se for a mesma sequencia da última, não processa e devolta ack
-    if (gerenciador->ultima_recebida->sequencia == nova_mensagem->sequencia) {
+    if (gerenciador->ultima_recebida && gerenciador->ultima_recebida->sequencia == nova_mensagem->sequencia) {
         *resposta = 0;
         return NULL;
     }
