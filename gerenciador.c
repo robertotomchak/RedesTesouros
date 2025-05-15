@@ -70,6 +70,8 @@ int inicia_gerenciador(gerenciador_t *gerenciador, char *nome_interface_rede) {
     gerenciador->socket = cria_raw_socket(nome_interface_rede);
     gerenciador->ultima_enviada = NULL;
     gerenciador->ultima_recebida = NULL;
+
+    return 1;
 }
 
 /*
@@ -173,9 +175,8 @@ int espera_ack(gerenciador_t *gerenciador, mensagem_t **mensagem_ptr) {
     // setando timeout do socket
     struct timeval timeout = { .tv_sec = TIMEOUT, .tv_usec = 0};
     setsockopt(gerenciador->socket, SOL_SOCKET, SO_RCVTIMEO, (char*) &timeout, sizeof(timeout));
-    int bytes_lidos;
     do {
-        bytes_lidos = recv(gerenciador->socket, buffer, PROTOCOLO_TAM_MAX, 0);
+        recv(gerenciador->socket, buffer, PROTOCOLO_TAM_MAX, 0);
         int _;
         mensagem = obtem_mensagem(buffer, &_);  // não precisamos do erro aqui
         // se encontrou mensagem do tipo ack ou nack, acabou
