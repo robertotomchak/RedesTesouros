@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "mensagem.h"
+#include "tipo.h"
 
 /* FUNÇÕES AUXILIARES INTERNAS */
 
@@ -131,4 +132,30 @@ retorno: void
 void libera_protocolo(protocolo_t *protocolo) {
     // é bem simples na verdade
     free(protocolo);
+}
+
+/*
+eh_ack: verifica se mensagem é do tipo ack
+parâmetros:
+    mensagem: ponteiro para mensagem
+retorno: 1 se for ack, 0 caso contrário
+*/
+int eh_ack(mensagem_t *mensagem) {
+    uchar_t tipo = mensagem->tipo;
+    int acks[] = {TIPO_ACK, TIPO_OK_ACK, TIPO_TEXTO_ACK, TIPO_IMAGEM_ACK, TIPO_VIDEO_ACK};
+    int num = 5;  // quantas mensagens do tipo ack
+    for (int i = 0; i < num; i++)
+        if (tipo == acks[i])
+            return 1;
+    return 0;
+}
+
+/*
+eh_nack: verifica se mensagem é do tipo nack
+parâmetros:
+    mensagem: ponteiro para mensagem
+retorno: 1 se for nack, 0 caso contrário
+*/
+int eh_nack(mensagem_t *mensagem) {
+    return mensagem->tipo == TIPO_NACK;
 }

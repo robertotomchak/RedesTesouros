@@ -6,6 +6,7 @@
 #include <arpa/inet.h>
 #include <net/ethernet.h>
 #include <linux/if_packet.h>
+#include <sys/time.h>
 #include <net/if.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -45,6 +46,14 @@ int cria_raw_socket(char* nome_interface_rede) {
     }
  
     return soquete;
+}
+
+// usando long long pra (tentar) sobreviver ao ano 2038
+// retornar o tempo atual em segundos
+long long timestamp_seg() {
+    struct timeval tp;
+    gettimeofday(&tp, NULL);
+    return tp.tv_sec;
 }
 
 /* ------------------------------------- */
@@ -153,10 +162,39 @@ mensagem_t *recebe_mensagem(gerenciador_t *gerenciador, int *resposta) {
 espera_ack: espera a outra máquina avisar que recebeu (ou não) uma mensagem
 parâmetros:
     gerenciador: ponteiro para o gerenciador
-    tipo: armazena o tipo da mensagem recebida
+    mensagem: ponteiro para mensagem recebida (pssagem por referência)
 retorno: 0 (ack), 1 (nack) ou -1 (timeout)
 */
-int espera_ack(gerenciador_t *gerenciador, uchar_t *tipo);
+int espera_ack(gerenciador_t *gerenciador, mensagem_t **mensagem_ptr) {
+    long long comeco = timestamp_seg();
+    uchar_t buffer[PROTOCOLO_TAM_MAX];
+    mensagem_t *mensagem;
+    int tipo = -1;
+    // setando timeout do socket
+    struct timeval timeout = { .tv_sec = TIMEOUT, .tv_usec = 0};
+    setsockopt(gerenciador->socket, SOL_SOCKET, SO_RCVTIMEO, (char*) &timeout, sizeof(timeout));
+    int bytes_lidos;
+    do {
+        bytes_lidos = recv(gerenciador->socket, buffer, PROTOCOLO_TAM_MAX, 0);
+        int _;
+        mensagem = obtem_mensagem(buffer, &_);  // não precisamos do erro aqui
+        // se encontrou mensagem do tipo ack ou nack, acabou
+        if (mensagem) {
+            if (eh_ack(mensagem))
+                tipo = 0;
+            else if (eh_nack(mensagem))
+                tipo = 1;
+            // se não for nem um nem outro, há problema de sincronização
+            else {
+                libera_mensagem(mensagem);
+                fprintf(stderr, "ERRO: esperava ACK ou NACK\n");
+                exit(-1);
+            }
+        }
+    } while(tipo == -1 && timestamp_seg() - comeco <= TIMEOUT);
+    *mensagem_ptr = mensagem;
+    return tipo; 
+}
 
 /*
 libera_gerenciador: libera memória alocada pelo gerenciador

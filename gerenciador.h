@@ -58,10 +58,10 @@ mensagem_t *recebe_mensagem(gerenciador_t *gerenciador, int *resposta);
 espera_ack: espera a outra máquina avisar que recebeu (ou não) uma mensagem
 parâmetros:
     gerenciador: ponteiro para o gerenciador
-    tipo: armazena o tipo da mensagem recebida
+    mensagem_ptr: ponteiro para mensagem recebida (passagem por referência)
 retorno: 0 (ack), 1 (nack) ou -1 (timeout)
 */
-int espera_ack(gerenciador_t *gerenciador, uchar_t *tipo);
+int espera_ack(gerenciador_t *gerenciador, mensagem_t **mensagem_ptr);
 
 /*
 libera_gerenciador: libera memória alocada pelo gerenciador

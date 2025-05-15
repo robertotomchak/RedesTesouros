@@ -92,4 +92,20 @@ retorno: void
 */
 void libera_protocolo(protocolo_t *protocolo);
 
+/*
+eh_ack: verifica se mensagem é do tipo ack
+parâmetros:
+    mensagem: ponteiro para mensagem
+retorno: 1 se for ack, 0 caso contrário
+*/
+int eh_ack(mensagem_t *mensagem);
+
+/*
+eh_nack: verifica se mensagem é do tipo nack
+parâmetros:
+    mensagem: ponteiro para mensagem
+retorno: 1 se for nack, 0 caso contrário
+*/
+int eh_nack(mensagem_t *mensagem);
+
 #endif
