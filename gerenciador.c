@@ -86,8 +86,9 @@ retorno: 0 se houve sucesso; != 0 se houve erro
 int envia_mensagem(gerenciador_t *gerenciador, uchar_t tamanho, uchar_t tipo, uchar_t *dados) {
     // determina numero da sequencia baseado na mensagem anterior
     uchar_t sequencia;
-    if (gerenciador->ultima_enviada)
+    if (gerenciador->ultima_enviada) {
         sequencia = (gerenciador->ultima_enviada->sequencia + 1) % TAM_SEQUENCIA;
+    }
     else
         sequencia = 0;
 

@@ -19,7 +19,7 @@ typedef struct {
 
 // quantas sequências podem ser identificadas antes de recomeçar
 // 5 bits
-#define TAM_SEQUENCIA 1 << 5
+#define TAM_SEQUENCIA (1 << 5)
 
 // tempo do time out (em segundos)
 #define TIMEOUT 60
