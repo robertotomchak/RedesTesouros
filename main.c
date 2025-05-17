@@ -13,7 +13,7 @@
 #define BUFFER_SIZE (1 << 7) - 1
 
 #define REDE_ENVIO "enx00e04c68011f"
-#define REDE_RECEBE ""
+#define REDE_RECEBE "enp1s0"
 
 void envia() {
     gerenciador_t *gerenciador = malloc(sizeof(gerenciador_t));
