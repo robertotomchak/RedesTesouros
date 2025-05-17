@@ -19,7 +19,7 @@ typedef struct {
 
 // quantas sequências podem ser identificadas antes de recomeçar
 // 5 bits
-#define TAM_SEQUENCIA 1 << 5
+#define TAM_SEQUENCIA (1 << 5)
 
 // tempo do time out (em segundos)
 #define TIMEOUT 60
@@ -62,6 +62,14 @@ parâmetros:
 retorno: 0 (ack), 1 (nack) ou -1 (timeout)
 */
 int espera_ack(gerenciador_t *gerenciador, mensagem_t **mensagem_ptr);
+
+/*
+reenvia: envia novamente a última mensagem enviada
+parâmetros:
+    gerenciador: ponteiro para o gerenciador
+    retorno: 0 se houve sucesso; != 0 se houve erro
+*/
+int reenvia(gerenciador_t *gerenciador);
 
 /*
 libera_gerenciador: libera memória alocada pelo gerenciador

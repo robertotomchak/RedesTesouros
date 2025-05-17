@@ -86,8 +86,9 @@ retorno: 0 se houve sucesso; != 0 se houve erro
 int envia_mensagem(gerenciador_t *gerenciador, uchar_t tamanho, uchar_t tipo, uchar_t *dados) {
     // determina numero da sequencia baseado na mensagem anterior
     uchar_t sequencia;
-    if (gerenciador->ultima_enviada)
+    if (gerenciador->ultima_enviada) {
         sequencia = (gerenciador->ultima_enviada->sequencia + 1) % TAM_SEQUENCIA;
+    }
     else
         sequencia = 0;
 
@@ -134,7 +135,7 @@ mensagem_t *recebe_mensagem(gerenciador_t *gerenciador, int *resposta) {
 
     // verifica se sequencia ta correta
     // se for a mesma sequencia da última, não processa e devolta ack
-    if (gerenciador->ultima_recebida->sequencia == nova_mensagem->sequencia) {
+    if (gerenciador->ultima_recebida && gerenciador->ultima_recebida->sequencia == nova_mensagem->sequencia) {
         *resposta = 0;
         return NULL;
     }
@@ -195,6 +196,25 @@ int espera_ack(gerenciador_t *gerenciador, mensagem_t **mensagem_ptr) {
     } while(tipo == -1 && timestamp_seg() - comeco <= TIMEOUT);
     *mensagem_ptr = mensagem;
     return tipo; 
+}
+
+/*
+reenvia: envia novamente a última mensagem enviada
+parâmetros:
+    gerenciador: ponteiro para o gerenciador
+    retorno: 0 se houve sucesso; != 0 se houve erro
+*/
+int reenvia(gerenciador_t *gerenciador) {
+    // se não tiver última, retorna erro
+    mensagem_t *msg = gerenciador->ultima_enviada;
+    if (!msg)
+        return 1;
+    // cria e envia o protocolo da última mensagem
+    protocolo_t *novo_protocolo = cria_protocolo(msg->tamanho, msg->sequencia, msg->tipo, msg->dados);
+    send(gerenciador->socket, novo_protocolo, PROTOCOLO_TAM_MAX, 0);
+    
+    libera_protocolo(novo_protocolo);
+    return 0;
 }
 
 /*
