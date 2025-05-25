@@ -7,22 +7,42 @@
 #include <time.h>
 #include <dirent.h> 
 #include <string.h>
+#include "gerenciador.h"
+#include "tipo.h"
 
+#define BUFFER_SIZE (1 << 7) - 1
 #define TAM_MAX 8
+#define CLIENTE 0
+#define SERVIDOR 1
+
+#define MOVIMENTO_INVALIDO "invalido"
+#define MOVIMENTO_ERRO "erro"
+#define MOVIMENTO_ACEITO "aceito"
+
+typedef unsigned char uchar_t;
 
 typedef struct {
     unsigned short posicao;
     char arquivo[64];
 } tesouro_t;
 
-char **inicializa_tabuleiro ();
+typedef struct {
+    uchar_t pos_x;
+    uchar_t pos_y;
+    char **matriz;
+    char **deslocamento;
+    tesouro_t tesouros[TAM_MAX];
+    uchar_t cont_tesouros;
+} tabuleiro_t;
 
-void sorteia_tesouros (char **matriz, tesouro_t *tesouros);
+tabuleiro_t *inicializa_tabuleiro ();
 
-void exibe_tabuleiro (char **matriz, int pos_x, int pos_y);
+void sorteia_tesouros (tabuleiro_t *tabuleiro);
 
-void abrir_arquivo(char *arquivo);
+void exibe_tabuleiro (tabuleiro_t *tabuleiro, int tipo);
 
-void movimentacao (char **matriz, char comando, int *pos_x, int *pos_y, unsigned short *cont_tesouros, tesouro_t *tesouros);
+const char* movimentacao(tabuleiro_t *tabuleiro, const char comando);
+
+void libera_tabuleiro(tabuleiro_t *tabuleiro);
 
 #endif

@@ -1,23 +1,31 @@
 #include "caca_tesouro.h"
 
-
-char **inicializa_tabuleiro (){
-    char **matriz = malloc(TAM_MAX * sizeof(char*));
+tabuleiro_t *inicializa_tabuleiro (){
+    tabuleiro_t *tabuleiro = malloc(sizeof(tabuleiro_t));
+    tabuleiro->matriz = malloc(TAM_MAX * sizeof(char*));
+    tabuleiro->deslocamento = malloc(TAM_MAX * sizeof(char*));
 
     for (int i = 0; i < TAM_MAX; i++) {
-        matriz[i] = malloc(TAM_MAX * sizeof(char));
+        tabuleiro->matriz[i] = malloc(TAM_MAX * sizeof(char));
+        tabuleiro->deslocamento[i] = malloc(TAM_MAX * sizeof(char));
     }
     
     for (int i = 0; i < TAM_MAX; i++) {
         for (int j = 0; j < TAM_MAX; j++) {
-            matriz[i][j] = '.';
+            tabuleiro->matriz[i][j] = '.';
+            tabuleiro->deslocamento[i][j] = 0;
         }
     }
 
-    return matriz;
+    tabuleiro->pos_x = 0;
+    tabuleiro->pos_y = 0;
+    memset(tabuleiro->tesouros, 0, sizeof(tabuleiro->tesouros));
+    tabuleiro->cont_tesouros = 0;
+
+    return tabuleiro;
 }
 
-void sorteia_tesouros (char **matriz, tesouro_t *tesouros){
+void sorteia_tesouros (tabuleiro_t *tabuleiro){
     DIR *dir;
     struct dirent *entrada;
 
@@ -46,75 +54,91 @@ void sorteia_tesouros (char **matriz, tesouro_t *tesouros){
     while (i < TAM_MAX){
         lin = rand() % TAM_MAX;
         col = rand() % TAM_MAX;
-        if (matriz[lin][col] != 'T' && !(lin == 0 && col == 0)) {
-            matriz[lin][col] = 'T';
-            tesouros[i].posicao = lin * TAM_MAX + col;
+        if (tabuleiro->matriz[lin][col] != 'T' && !(lin == 0 && col == 0)) {
+            tabuleiro->matriz[lin][col] = 'T';
+            tabuleiro->tesouros[i].posicao = lin * TAM_MAX + col;
             // garante que o espaço esteja se lixo de memória
-            memset(tesouros[i].arquivo, 0, sizeof(tesouros[i].arquivo));
-            strcpy(tesouros[i].arquivo, arquivos[i]);
-            printf("%s\n",tesouros[i].arquivo);
+            memset(tabuleiro->tesouros[i].arquivo, 0, sizeof(tabuleiro->tesouros[i].arquivo));
+            strcpy(tabuleiro->tesouros[i].arquivo, arquivos[i]);
+            printf("%s\n",tabuleiro->tesouros[i].arquivo);
             i++;
         }
     }
+
+    exibe_tabuleiro(tabuleiro, SERVIDOR);
+
     closedir(dir);
 }
 
-void exibe_tabuleiro (char **matriz, int pos_x, int pos_y){
+void exibe_tabuleiro (tabuleiro_t *tabuleiro, int tipo){
     printf("   ");
     for (int i = 0; i < TAM_MAX; i++) {
         printf("%d ", i);
     }
     printf("\n");
 
-    for (int i = 0; i < TAM_MAX; i++) {
+    for (int i = TAM_MAX - 1; i >= 0; i--) {
         printf("%d  ", i);
         for (int j = 0; j < TAM_MAX; j++) {
-            if(i == pos_y && j == pos_x)
+            if(i == tabuleiro->pos_y && j == tabuleiro->pos_x)
                 printf("J ");
-            else if (matriz[i][j] == 'T')
-                printf(". ");
+            else if (tabuleiro->deslocamento[i][j])
+                printf("* ");
+            else if (tabuleiro->matriz[i][j] == 'T')
+                if (tipo == SERVIDOR)
+                    printf("T ");
+                else
+                    printf(". "); 
             else
-                printf("%c ", matriz[i][j]);
+                printf("%c ", tabuleiro->matriz[i][j]);
         }
         printf("\n");
     }
 }
 
-void abrir_arquivo(char *arquivo){
-    printf("Abrindo o arquivo %s...\n", arquivo);
-    char comando[128];
-    snprintf(comando, sizeof(comando), "xdg-open './objetos/%s' 2>/dev/null >/dev/null &", arquivo);
-    system(comando);
-}
+const char* movimentacao(tabuleiro_t *tabuleiro, const char comando) {
+    int x = tabuleiro->pos_x;
+    int y = tabuleiro->pos_y;
 
-void movimentacao (char **matriz, char comando, int *pos_x, int *pos_y, unsigned short *cont_tesouros, tesouro_t *tesouros){
-    int x, y;
-    x = *pos_x; y = *pos_y;
     if (comando != 'a' && comando != 'w' && comando != 'd' && comando != 's') {
         printf("Comando inválido. Use apenas w, a, s ou d.\n");
-        return;
+        return MOVIMENTO_ERRO;
     }
 
-    if ((comando == 'a') && (x > 0)) x--; // esquerda
-    else if((comando == 'w') && (y > 0)) y--; // cima
-    else if((comando == 'd') && (x <  7)) x++; // direita
-    else if((comando == 's') && (y < 7)) y++; // baixo
-    else{ 
+    if ((comando == 'a') && (x > 0)) x--;         // esquerda
+    else if ((comando == 'w') && (y < 7)) y++;    // cima
+    else if ((comando == 'd') && (x < 7)) x++;    // direita
+    else if ((comando == 's') && (y > 0)) y--;    // baixo
+    else {
         printf("Movimento inválido, bateu na parede.\n");
-        return;
+        return MOVIMENTO_INVALIDO;
     }
-    matriz[*pos_y][*pos_x] = '*';
-    
-    // arruma as posições    
-    *pos_x = x; *pos_y = y;
-    
-    if (matriz[*pos_y][*pos_x] == 'T') {
-        (*cont_tesouros)++;
-        printf("Parabéns! Você encontrou um tesouro em (%d,%d)!\n", *pos_x, *pos_y);
+
+    // Marca deslocamento na posição anterior
+    tabuleiro->deslocamento[tabuleiro->pos_y][tabuleiro->pos_x] = 1;
+
+    // Atualiza posição
+    tabuleiro->pos_x = x;
+    tabuleiro->pos_y = y;
+
+    // Verifica se encontrou um tesouro
+    if (tabuleiro->matriz[y][x] == 'T') {
+        tabuleiro->cont_tesouros++;
+        printf("Parabéns! Você encontrou um tesouro em (%d,%d)!\n", x, y);
+
         for (int i = 0; i < TAM_MAX; i++) {
-            if (tesouros[i].posicao == *pos_y * TAM_MAX + *pos_x) {
-                abrir_arquivo(tesouros[i].arquivo);
+            if (tabuleiro->tesouros[i].posicao == y * TAM_MAX + x) {
+                return tabuleiro->tesouros[i].arquivo;
             }
         }
     }
+    return MOVIMENTO_ACEITO;
+}
+
+void libera_tabuleiro(tabuleiro_t *tabuleiro) {
+    for (int i = 0; i < TAM_MAX; i++) {
+        free(tabuleiro->matriz[i]);
+    }
+    free(tabuleiro->matriz);
+    free(tabuleiro);
 }
