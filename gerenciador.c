@@ -58,6 +58,32 @@ long long timestamp_seg() {
 
 /* ------------------------------------- */
 
+/* FUNÇÕES AUXILIARES INTERNAS */
+
+// envia um protocolo na rede
+void envia_rede(int socket, protocolo_t *protocolo) {
+    // cria buffer para enviar e insere bytes para evitar problemas
+    uchar_t buffer[2*(PROTOCOLO_TAM_MAX)];
+    uchar_t *protocolo_bruto = (uchar_t *) protocolo;
+    for (int i = 0; i < (PROTOCOLO_TAM_MAX); i++) {
+        buffer[2*i] = protocolo_bruto[i];
+        buffer[2*i+1] = 0xff; 
+    }
+    send(socket, buffer, 2*(PROTOCOLO_TAM_MAX), 0);
+}
+
+// recebe um protocolo da rede e armazena no buffer dado
+// buffer apenas guarda ruído, deve ter tamanho = PROTOCOLO_TAM_MAX
+void recebe_rede(int socket, uchar_t *protocolo_bruto) {
+    // considera que mensagem foi enviada colocando bytes de redundância para evitar problemas
+    uchar_t buffer[2*(PROTOCOLO_TAM_MAX)];
+    recv(socket, buffer, 2*(PROTOCOLO_TAM_MAX), 0);
+    for (int i = 0; i < PROTOCOLO_TAM_MAX; i++)
+        protocolo_bruto[i] = buffer[2*i];
+}
+
+/* ------------------------------------- */
+
 
 /*
 inicia_gerenciador: inicia a estrutura do gerenciador
@@ -94,7 +120,7 @@ int envia_mensagem(gerenciador_t *gerenciador, uchar_t tamanho, uchar_t tipo, uc
 
     // cria e envia o protocolo da nova mensagem
     protocolo_t *novo_protocolo = cria_protocolo(tamanho, sequencia, tipo, dados);
-    send(gerenciador->socket, novo_protocolo, PROTOCOLO_TAM_MAX, 0);
+    envia_rede(gerenciador->socket, novo_protocolo);
 
     // cria mensagem desse protocolo e salva
     int _;  // não precisamos verificar o erro da mensagem
@@ -117,7 +143,7 @@ retorno: ponteiro para mensagem recebida; NULL se não recebeu nenhuma mensagem
 mensagem_t *recebe_mensagem(gerenciador_t *gerenciador, int *resposta) {
     // le protocolo da rede
     uchar_t buffer[PROTOCOLO_TAM_MAX];
-    recv(gerenciador->socket, buffer, PROTOCOLO_TAM_MAX, 0);
+    recebe_rede(gerenciador->socket, buffer);
     
     // cria mensagem (se válida)
     int erro;
@@ -177,7 +203,7 @@ int espera_ack(gerenciador_t *gerenciador, mensagem_t **mensagem_ptr) {
     struct timeval timeout = { .tv_sec = TIMEOUT, .tv_usec = 0};
     setsockopt(gerenciador->socket, SOL_SOCKET, SO_RCVTIMEO, (char*) &timeout, sizeof(timeout));
     do {
-        recv(gerenciador->socket, buffer, PROTOCOLO_TAM_MAX, 0);
+        recebe_rede(gerenciador->socket, buffer);
         int _;
         mensagem = obtem_mensagem(buffer, &_);  // não precisamos do erro aqui
         // se encontrou mensagem do tipo ack ou nack, acabou
@@ -211,7 +237,7 @@ int reenvia(gerenciador_t *gerenciador) {
         return 1;
     // cria e envia o protocolo da última mensagem
     protocolo_t *novo_protocolo = cria_protocolo(msg->tamanho, msg->sequencia, msg->tipo, msg->dados);
-    send(gerenciador->socket, novo_protocolo, PROTOCOLO_TAM_MAX, 0);
+    envia_rede(gerenciador->socket, novo_protocolo);
     
     libera_protocolo(novo_protocolo);
     return 0;
