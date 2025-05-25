@@ -61,7 +61,6 @@ void servidor(){
     int resposta, erro;
 
     while (tabuleiro->cont_tesouros < 8) {
-        printf("socorro\n");
         do {
             msg_recebida = recebe_mensagem(gerenciador, &resposta);
         } while (!msg_recebida || resposta == -1);
