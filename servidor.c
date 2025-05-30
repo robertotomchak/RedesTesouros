@@ -39,6 +39,8 @@ void envia(const char *nome_arquivo, gerenciador_t *gerenciador) {
         printf("MENSAGEM ENVIADA COM SUCESSO\n");
     }
     // última mensagem para dizer que acabou
+    // TODO: talvez aqui precise do while (erro) ...
+    // pra saber que cliente recebeu o FIM_ARQUIVO
     envia_mensagem(gerenciador, 0, TIPO_FIM_ARQUIVO, (uchar_t *) buffer);
     fclose(f);
     printf("TERMINOU DE ENVIAR ARQUIVO\n");

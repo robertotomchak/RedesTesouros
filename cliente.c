@@ -34,7 +34,7 @@ void cliente(){
 
     char comando;
     mensagem_t *msg_recebida, *msg_ack;
-    int resposta, erro;
+    int erro;
     char nome_arquivo[64];
 
     exibe_tabuleiro(tabuleiro, CLIENTE);
@@ -51,21 +51,21 @@ void cliente(){
             reenvia(gerenciador);
             erro = espera_ack(gerenciador, &msg_ack);
         }
-        
+        msg_recebida = msg_ack;
         while (!sucesso_nack) {
-            do {
-                msg_recebida = recebe_mensagem(gerenciador, &resposta);
-            } while (!msg_recebida || resposta == -1);
-
             switch (msg_recebida->tipo) {
+                // movimento aceito
                 case TIPO_OK_ACK:
                     movimentacao(tabuleiro, comando);
                     exibe_tabuleiro(tabuleiro, CLIENTE);
                     sucesso_nack = 1;  // sai do while
                     break;
+                // caiu num tesouro
                 case TIPO_IMAGEM_ACK:
                 case TIPO_VIDEO_ACK:
                 case TIPO_TEXTO_ACK:
+                    // TODO: acho que envia_mensagem tá ok. Só talvez tenha que adicionar lógica
+                    // para reenviar mensagem se servidor não receber o ack
                     envia_mensagem(gerenciador, 0, TIPO_ACK, NULL);
                     movimentacao(tabuleiro, comando);
                     exibe_tabuleiro(tabuleiro, CLIENTE);
@@ -74,6 +74,7 @@ void cliente(){
                     abrir_arquivo(nome_arquivo);
                     sucesso_nack = 1;
                     break;
+                // TODO: esse caso pode acontecer?
                 case TIPO_NACK:
                     printf("Servidor rejeitou o comando. Reenviando...\n");
                     // Reenvia até ter sucesso
@@ -81,6 +82,7 @@ void cliente(){
                         printf("Erro ao reenviar. Tentando novamente...\n");
                     }
                     break;
+                // movimento não válido (saiu do tabuleiro, etc)
                 case TIPO_ACK:
                     printf("Movimento inválido!\n");
                     sucesso_nack = 1; 
@@ -109,7 +111,9 @@ void receba(const char *nome_arquivo, gerenciador_t *gerenciador) {
         return;
     }
 
-    mensagem_t *msg_recebida;
+    // TODO: aqui não tava inicializando msg_recebida com NULL
+    // talvez isso fizesse ele sair do while, mas não tenho certeza
+    mensagem_t *msg_recebida = NULL;
     int resposta;
     do {
         msg_recebida = recebe_mensagem(gerenciador, &resposta);
