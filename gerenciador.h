@@ -6,6 +6,10 @@
 #ifndef GERENCIADOR_H
 #define GERENCIADOR_H
 
+#include "caca_tesouro.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "mensagem.h"
 
 /*
@@ -22,7 +26,9 @@ typedef struct {
 #define TAM_SEQUENCIA (1 << 5)
 
 // tempo do time out (em segundos)
-#define TIMEOUT 60
+#define TIMEOUT 2
+
+#define BUFFER_SIZE (1 << 7) - 1
 
 
 /*
