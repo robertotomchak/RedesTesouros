@@ -72,16 +72,16 @@ void servidor(){
             msg_recebida = recebe_mensagem(gerenciador, &resposta);
         } while (!msg_recebida || resposta == -1);
 
-        // Pega o tipo do comando (ex: CMD_CIMA, CMD_BAIXO, etc.)
+        // Pega o tipo do comando
         const char comando = tipo_do_comando (msg_recebida->tipo);
         const char *movimento = movimentacao(tabuleiro, comando);
         
         if (strcmp(movimento, MOVIMENTO_INVALIDO) == 0) {
-            envia_mensagem(gerenciador, 0, TIPO_ACK, (uchar_t *)1);
+            envia_mensagem(gerenciador, 0, TIPO_ACK, NULL);
             exibe_tabuleiro(tabuleiro, SERVIDOR);
             continue;
         } else if (strcmp(movimento, MOVIMENTO_ACEITO) == 0) {
-            envia_mensagem(gerenciador, 0, TIPO_OK_ACK, (uchar_t *)1);
+            envia_mensagem(gerenciador, 0, TIPO_OK_ACK, NULL);
             exibe_tabuleiro(tabuleiro, SERVIDOR);
             continue;
         }
@@ -99,7 +99,6 @@ void servidor(){
                 tipo_ack = TIPO_ERRO;
             }
 
-            printf("%d\n", tipo_ack);
             envia_mensagem(gerenciador, strlen(movimento) + 1, tipo_ack, (uchar_t *) movimento);
             erro = espera_ack(gerenciador, &msg_ack);
             while (erro) {

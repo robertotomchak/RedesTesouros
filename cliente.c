@@ -74,17 +74,21 @@ void cliente(){
     int erro;
     char nome_arquivo[64];
 
+    char linha[10];
+
     while (tabuleiro->cont_tesouros < 8) {
         exibe_tabuleiro(tabuleiro, CLIENTE);
         printf("Digite comando (w/a/s/d): ");
-        scanf(" %c", &comando);
 
+        if (fgets(linha, sizeof(linha), stdin) != NULL) {
+            comando = linha[0]; // lê o primeiro caractere digitado
+        }
         while (comando != 'a' && comando != 'w' && comando != 'd' && comando != 's') {
             printf("Comando inválido. Use apenas w, a, s ou d.\n");
-            scanf(" %c", &comando);
+            if (fgets(linha, sizeof(linha), stdin) != NULL) {
+                comando = linha[0];
+            }
         }
-
-        getchar();
 
         int tipo_comando = tipo_de_movimento(comando);
         int sucesso_nack = 0;
@@ -111,9 +115,14 @@ void cliente(){
                     // TODO: acho que envia_mensagem tá ok. Só talvez tenha que adicionar lógica
                     // para reenviar mensagem se servidor não receber o ack
                     envia_mensagem(gerenciador, 0, TIPO_ACK, NULL);
+                    while (erro) {
+                        reenvia(gerenciador);
+                        erro = espera_ack(gerenciador, &msg_ack);
+                    }
                     movimentacao(tabuleiro, comando);
                     exibe_tabuleiro(tabuleiro, CLIENTE);
                     memcpy(nome_arquivo, msg_recebida->dados, msg_recebida->tamanho);
+                    nome_arquivo[msg_recebida->tamanho] = '\0';
                     receba(nome_arquivo, gerenciador);
                     abrir_arquivo(nome_arquivo);
                     sucesso_nack = 1;
