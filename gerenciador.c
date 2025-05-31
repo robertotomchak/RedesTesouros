@@ -167,16 +167,16 @@ mensagem_t *recebe_mensagem(gerenciador_t *gerenciador, int *resposta) {
         return NULL;
     }
     // se for primeira mensagem e sequencia = 0 ou sequencia = sequencia_anterior + 1
-    uchar_t sequencia_correta;
+    /*uchar_t sequencia_correta;
     if (gerenciador->ultima_recebida)
         sequencia_correta = (gerenciador->ultima_recebida->sequencia + 1) % TAM_SEQUENCIA;
     else
-        sequencia_correta = 0;
-    if (nova_mensagem->sequencia != sequencia_correta) {
+        sequencia_correta = 0;*/
+    /*if (nova_mensagem->sequencia != sequencia_correta) {
         // sequência incorreta -> enviar nack
         *resposta = 1;
         return NULL;
-    }
+    }*/
 
     // libera antiga mensagem e guarda nova
     if (gerenciador->ultima_recebida)

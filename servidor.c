@@ -42,6 +42,11 @@ void envia(const char *nome_arquivo, gerenciador_t *gerenciador) {
     // TODO: talvez aqui precise do while (erro) ...
     // pra saber que cliente recebeu o FIM_ARQUIVO
     envia_mensagem(gerenciador, 0, TIPO_FIM_ARQUIVO, (uchar_t *) buffer);
+    erro = espera_ack(gerenciador, &msg_ack);
+    while (erro) {
+        reenvia(gerenciador);
+        erro = espera_ack(gerenciador, &msg_ack);
+    }
     fclose(f);
     printf("TERMINOU DE ENVIAR ARQUIVO\n");
 }
@@ -75,9 +80,6 @@ void servidor(){
             envia_mensagem(gerenciador, 0, TIPO_ACK, (uchar_t *)1);
             exibe_tabuleiro(tabuleiro, SERVIDOR);
             continue;
-        } else if (strcmp(movimento, MOVIMENTO_ERRO) == 0) {
-            envia_mensagem(gerenciador, 0, TIPO_ERRO, (uchar_t *)1);
-            continue;
         } else if (strcmp(movimento, MOVIMENTO_ACEITO) == 0) {
             envia_mensagem(gerenciador, 0, TIPO_OK_ACK, (uchar_t *)1);
             exibe_tabuleiro(tabuleiro, SERVIDOR);
@@ -104,10 +106,10 @@ void servidor(){
                 reenvia(gerenciador);
                 erro = espera_ack(gerenciador, &msg_ack);
             }
-            printf("MENSAGEM ENVIADA COM SUCESSO\n");
+            printf("MENSAGEM ENVIADA COM SUCESSO DO TIPO DE ARQUIVO\n");
+            envia(movimento, gerenciador); // envia o arquivo
 
             exibe_tabuleiro(tabuleiro, SERVIDOR);
-            envia(movimento, gerenciador); // envia o arquivo
         }
 
     }

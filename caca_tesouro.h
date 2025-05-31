@@ -16,7 +16,6 @@
 #define SERVIDOR 1
 
 #define MOVIMENTO_INVALIDO "invalido"
-#define MOVIMENTO_ERRO "erro"
 #define MOVIMENTO_ACEITO "aceito"
 
 typedef unsigned char uchar_t;

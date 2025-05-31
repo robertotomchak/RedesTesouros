@@ -27,6 +27,43 @@ void envia_comando (gerenciador_t *gerenciador, int movimento){
     envia_mensagem(gerenciador, 0, movimento, (uchar_t *) 1);
 }
 
+void receba(const char *nome_arquivo, gerenciador_t *gerenciador) {
+    FILE *f = fopen(nome_arquivo, "wb");
+    if (!f) {
+        perror("Erro ao abrir arquivo");
+        return;
+    }
+
+    // TODO: aqui não tava inicializando msg_recebida com NULL
+    // talvez isso fizesse ele sair do while, mas não tenho certeza
+    mensagem_t *msg_recebida = NULL;
+    int resposta;
+    do {
+        msg_recebida = recebe_mensagem(gerenciador, &resposta);
+        if (resposta == -1)
+            continue;
+        // processar mensagem
+        if (msg_recebida && msg_recebida->tipo == TIPO_DADOS) {
+            printf("ESCREVENDO %d BYTES\n", msg_recebida->tamanho);
+            fwrite(msg_recebida->dados, 1, msg_recebida->tamanho, f);
+        }
+        // enviar ack
+        if (resposta == 0) {
+            printf("ENVIANDO ACK...\n");
+            envia_mensagem(gerenciador, 0, TIPO_ACK, (uchar_t *) 1);
+        }
+        // enviar nack
+        else if (resposta == 1) {
+            printf("ENVIANDO NACK...\n");
+            envia_mensagem(gerenciador, 0, TIPO_NACK, (uchar_t *) 1);
+        }
+    } while(!msg_recebida || msg_recebida->tipo != TIPO_FIM_ARQUIVO);
+    
+    envia_mensagem(gerenciador, 0, TIPO_ACK, (uchar_t *) 1);
+
+    fclose(f);
+}
+
 void cliente(){
     tabuleiro_t *tabuleiro = inicializa_tabuleiro();
     gerenciador_t *gerenciador = malloc(sizeof(gerenciador_t));
@@ -37,10 +74,17 @@ void cliente(){
     int erro;
     char nome_arquivo[64];
 
-    exibe_tabuleiro(tabuleiro, CLIENTE);
     while (tabuleiro->cont_tesouros < 8) {
+        exibe_tabuleiro(tabuleiro, CLIENTE);
         printf("Digite comando (w/a/s/d): ");
         scanf(" %c", &comando);
+
+        while (comando != 'a' && comando != 'w' && comando != 'd' && comando != 's') {
+            printf("Comando inválido. Use apenas w, a, s ou d.\n");
+            scanf(" %c", &comando);
+        }
+
+        getchar();
 
         int tipo_comando = tipo_de_movimento(comando);
         int sucesso_nack = 0;
@@ -101,40 +145,4 @@ void cliente(){
     
     libera_tabuleiro(tabuleiro);
     libera_gerenciador(gerenciador);
-}
-
-
-void receba(const char *nome_arquivo, gerenciador_t *gerenciador) {
-    FILE *f = fopen(nome_arquivo, "wb");
-    if (!f) {
-        perror("Erro ao abrir arquivo");
-        return;
-    }
-
-    // TODO: aqui não tava inicializando msg_recebida com NULL
-    // talvez isso fizesse ele sair do while, mas não tenho certeza
-    mensagem_t *msg_recebida = NULL;
-    int resposta;
-    do {
-        msg_recebida = recebe_mensagem(gerenciador, &resposta);
-        if (resposta == -1)
-            continue;
-        // processar mensagem
-        if (msg_recebida && msg_recebida->tipo == TIPO_DADOS) {
-            printf("ESCREVENDO %d BYTES\n", msg_recebida->tamanho);
-            fwrite(msg_recebida->dados, 1, msg_recebida->tamanho, f);
-        }
-        // enviar ack
-        if (resposta == 0) {
-            printf("ENVIANDO ACK...\n");
-            envia_mensagem(gerenciador, 0, TIPO_ACK, (uchar_t *) 1);
-        }
-        // enviar nack
-        else if (resposta == 1) {
-            printf("ENVIANDO NACK...\n");
-            envia_mensagem(gerenciador, 0, TIPO_NACK, (uchar_t *) 1);
-        }
-    } while(!msg_recebida || msg_recebida->tipo != TIPO_FIM_ARQUIVO);
-    
-    fclose(f);
 }

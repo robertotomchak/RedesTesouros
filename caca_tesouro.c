@@ -100,11 +100,6 @@ const char* movimentacao(tabuleiro_t *tabuleiro, const char comando) {
     int x = tabuleiro->pos_x;
     int y = tabuleiro->pos_y;
 
-    if (comando != 'a' && comando != 'w' && comando != 'd' && comando != 's') {
-        printf("Comando inválido. Use apenas w, a, s ou d.\n");
-        return MOVIMENTO_ERRO;
-    }
-
     if ((comando == 'a') && (x > 0)) x--;         // esquerda
     else if ((comando == 'w') && (y < 7)) y++;    // cima
     else if ((comando == 'd') && (x < 7)) x++;    // direita
