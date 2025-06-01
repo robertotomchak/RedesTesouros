@@ -104,6 +104,12 @@ void cliente(){
             switch (msg_recebida->tipo) {
                 // movimento aceito
                 case TIPO_OK_ACK:
+                    // adicionando que ele recebeu a mensagem ok
+                    envia_mensagem(gerenciador, 0, TIPO_ACK, NULL);
+                    while (erro) {
+                        reenvia(gerenciador);
+                        erro = espera_ack(gerenciador, &msg_ack);
+                    }
                     movimentacao(tabuleiro, comando);
                     exibe_tabuleiro(tabuleiro, CLIENTE);
                     sucesso_nack = 1;  // sai do while

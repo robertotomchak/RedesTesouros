@@ -81,11 +81,16 @@ void servidor(){
             exibe_tabuleiro(tabuleiro, SERVIDOR);
             continue;
         } else if (strcmp(movimento, MOVIMENTO_ACEITO) == 0) {
+            // quando permitiu a movimentação o jogador/cliente precisa saber dessa condição
             envia_mensagem(gerenciador, 0, TIPO_OK_ACK, NULL);
+            while (erro) {
+                reenvia(gerenciador);
+                erro = espera_ack(gerenciador, &msg_ack);
+            }
             exibe_tabuleiro(tabuleiro, SERVIDOR);
             continue;
         }
-        else{
+        else {
             int tipo_ack;
             if (strcmp(obter_extensao(movimento), "txt") == 0) {
                 printf("%s\n",obter_extensao(movimento));
@@ -99,7 +104,7 @@ void servidor(){
                 tipo_ack = TIPO_ERRO;
             }
 
-            envia_mensagem(gerenciador, strlen(movimento) + 1, tipo_ack, (uchar_t *) movimento);
+            envia_mensagem(gerenciador, strlen(movimento) + 1, t ipo_ack, (uchar_t *) movimento);
             erro = espera_ack(gerenciador, &msg_ack);
             while (erro) {
                 reenvia(gerenciador);
