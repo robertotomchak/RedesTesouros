@@ -104,7 +104,7 @@ void servidor(){
                 tipo_ack = TIPO_ERRO;
             }
 
-            envia_mensagem(gerenciador, strlen(movimento) + 1, t ipo_ack, (uchar_t *) movimento);
+            envia_mensagem(gerenciador, strlen(movimento) + 1, tipo_ack, (uchar_t *) movimento);
             erro = espera_ack(gerenciador, &msg_ack);
             while (erro) {
                 reenvia(gerenciador);
