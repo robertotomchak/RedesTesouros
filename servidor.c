@@ -83,10 +83,6 @@ void servidor(){
         } else if (strcmp(movimento, MOVIMENTO_ACEITO) == 0) {
             // quando permitiu a movimentação o jogador/cliente precisa saber dessa condição
             envia_mensagem(gerenciador, 0, TIPO_OK_ACK, NULL);
-            while (erro) {
-                reenvia(gerenciador);
-                erro = espera_ack(gerenciador, &msg_ack);
-            }
             exibe_tabuleiro(tabuleiro, SERVIDOR);
             continue;
         }
