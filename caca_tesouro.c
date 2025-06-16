@@ -116,8 +116,8 @@ const char* movimentacao(tabuleiro_t *tabuleiro, const char comando) {
     tabuleiro->pos_x = x;
     tabuleiro->pos_y = y;
 
-    // Verifica se encontrou um tesouro
-    if (tabuleiro->matriz[y][x] == 'T') {
+    // Verifica se encontrou um tesouro e se ja nao foi visitado
+    if (tabuleiro->matriz[y][x] == 'T' && tabuleiro->deslocamento[y][x] == 0) {
         tabuleiro->cont_tesouros++;
         printf("Parabéns! Você encontrou um tesouro em (%d,%d)!\n", x, y);
 
