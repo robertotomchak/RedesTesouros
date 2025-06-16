@@ -1,9 +1,41 @@
 #include "cliente.h"
 
+
 void abrir_arquivo(const char *arquivo){
-    printf("Abrindo o arquivo %s...\n", arquivo);
-    char comando[128];
-    snprintf(comando, sizeof(comando), "xdg-open '%s' 2>/dev/null >/dev/null &", arquivo);
+    const char *usuario = getenv("SUDO_USER");
+    if (!usuario) {
+        fprintf(stderr, "Erro: SUDO_USER não encontrado. O programa deve ser executado com sudo.\n");
+        return;
+    }
+
+    struct passwd *pw = getpwnam(usuario);
+    if (!pw) {
+        fprintf(stderr, "Erro: Não foi possível obter informações do usuário %s.\n", usuario);
+        return;
+    }
+
+    // Mudar o dono do arquivo (se quiser manter isso)
+    if (chown(arquivo, pw->pw_uid, pw->pw_gid) != 0) {
+        perror("Erro ao mudar o dono do arquivo");
+    }
+
+    // Capturar variáveis de ambiente da sessão do usuário
+    const char *display = getenv("DISPLAY");
+    const char *dbus = getenv("DBUS_SESSION_BUS_ADDRESS");
+    const char *runtime = getenv("XDG_RUNTIME_DIR");
+
+    if (!display || !dbus || !runtime) {
+        fprintf(stderr, "Erro: Ambiente gráfico do usuário não encontrado corretamente (DISPLAY, DBUS ou XDG_RUNTIME_DIR).\n");
+        return;
+    }
+
+    printf("Abrindo o arquivo %s como usuário %s...\n", arquivo, usuario);
+
+    char comando[512];
+    snprintf(comando, sizeof(comando),
+        "sudo -u %s DISPLAY='%s' DBUS_SESSION_BUS_ADDRESS='%s' XDG_RUNTIME_DIR='%s' xdg-open '%s' >/dev/null 2>&1 &",
+        usuario, display, dbus, runtime, arquivo);
+
     system(comando);
 }
 
@@ -58,8 +90,6 @@ void receba(const char *nome_arquivo, gerenciador_t *gerenciador) {
             envia_mensagem(gerenciador, 0, TIPO_NACK, (uchar_t *) 1);
         }
     } while(!msg_recebida || msg_recebida->tipo != TIPO_FIM_ARQUIVO);
-    
-    envia_mensagem(gerenciador, 0, TIPO_ACK, (uchar_t *) 1);
 
     fclose(f);
 }
@@ -77,6 +107,7 @@ void cliente(){
     char linha[10];
 
     while (tabuleiro->cont_tesouros < 8) {
+        printf("TESOUROS ENCONTRADOS: %d\n", tabuleiro->cont_tesouros);
         exibe_tabuleiro(tabuleiro, CLIENTE);
         printf("Digite comando (w/a/s/d): ");
 
@@ -89,11 +120,12 @@ void cliente(){
                 comando = linha[0];
             }
         }
-
+        
         int tipo_comando = tipo_de_movimento(comando);
         int sucesso_nack = 0;
-
+        
         envia_comando(gerenciador, tipo_comando);
+        printf("TECLA DIGITADA: %c %d\n", comando, comando);
         erro = espera_ack(gerenciador, &msg_ack);
         while (erro) {
             reenvia(gerenciador);
@@ -112,6 +144,7 @@ void cliente(){
                 case TIPO_IMAGEM_ACK:
                 case TIPO_VIDEO_ACK:
                 case TIPO_TEXTO_ACK:
+                    tabuleiro->cont_tesouros++;
                     // TODO: acho que envia_mensagem tá ok. Só talvez tenha que adicionar lógica
                     // para reenviar mensagem se servidor não receber o ack
                     envia_mensagem(gerenciador, 0, TIPO_ACK, NULL);

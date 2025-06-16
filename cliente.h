@@ -5,7 +5,11 @@
 #include "caca_tesouro.h"
 #include "tipo.h"
 
-#define REDE_RECEBE "enp1s0"
+#include <sys/types.h>
+#include <pwd.h>
+#include <unistd.h>
+
+#define REDE_RECEBE "enx00e04c68011f"
 
 void abrir_arquivo(const char *arquivo);
 
