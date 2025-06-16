@@ -71,7 +71,7 @@ void servidor(){
         do {
             msg_recebida = recebe_mensagem(gerenciador, &resposta);
         } while (!msg_recebida || resposta == -1);
-
+        printf("TIPO DA MENSAGEM RECEBIDA: %d\n", msg_recebida->tipo);
         // Pega o tipo do comando
         const char comando = tipo_do_comando (msg_recebida->tipo);
         const char *movimento = movimentacao(tabuleiro, comando);

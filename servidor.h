@@ -5,7 +5,7 @@
 #include "caca_tesouro.h"
 #include "tipo.h"
 
-#define REDE_ENVIA "enp7s0"
+#define REDE_ENVIA "enp1s0"
 
 const char tipo_do_comando(int comando);
 
