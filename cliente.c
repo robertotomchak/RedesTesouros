@@ -65,20 +65,19 @@ void receba(const char *nome_arquivo, gerenciador_t *gerenciador) {
         perror("Erro ao abrir arquivo");
         return;
     }
-
-    // TODO: aqui não tava inicializando msg_recebida com NULL
-    // talvez isso fizesse ele sair do while, mas não tenho certeza
     mensagem_t *msg_recebida = NULL;
     int resposta;
+
+    // primeiro, receber tamanho do arquivo e ver se cabe no disco
+    unsigned int tamanho_arq;
     do {
         msg_recebida = recebe_mensagem(gerenciador, &resposta);
         if (resposta == -1)
             continue;
-        // processar mensagem
-        if (msg_recebida && msg_recebida->tipo == TIPO_DADOS) {
-            printf("ESCREVENDO %d BYTES\n", msg_recebida->tamanho);
-            fwrite(msg_recebida->dados, 1, msg_recebida->tamanho, f);
-        }
+
+        if (msg_recebida && msg_recebida->tipo == TIPO_TAMANHO)
+            tamanho_arq = *(unsigned int *) msg_recebida->dados;
+        
         // enviar ack
         if (resposta == 0) {
             printf("ENVIANDO ACK...\n");
@@ -89,7 +88,31 @@ void receba(const char *nome_arquivo, gerenciador_t *gerenciador) {
             printf("ENVIANDO NACK...\n");
             envia_mensagem(gerenciador, 0, TIPO_NACK, (uchar_t *) 1);
         }
+    } while(!msg_recebida);
+    printf("RECEBI UM ARQUIVO DE TAMANHO %d\n", tamanho_arq);
+
+
+    do {
+        msg_recebida = recebe_mensagem(gerenciador, &resposta);
+        if (resposta == -1)
+            continue;
+        // processar mensagem
+        if (msg_recebida && msg_recebida->tipo == TIPO_DADOS) {
+            //printf("ESCREVENDO %d BYTES\n", msg_recebida->tamanho);
+            fwrite(msg_recebida->dados, 1, msg_recebida->tamanho, f);
+        }
+        // enviar ack
+        if (resposta == 0) {
+            //printf("ENVIANDO ACK DO %d\n", msg_recebida->tipo);
+            envia_mensagem(gerenciador, 0, TIPO_ACK, (uchar_t *) 1);
+        }
+        // enviar nack
+        else if (resposta == 1) {
+            //printf("ENVIANDO NACK...\n");
+            envia_mensagem(gerenciador, 0, TIPO_NACK, (uchar_t *) 1);
+        }
     } while(!msg_recebida || msg_recebida->tipo != TIPO_FIM_ARQUIVO);
+
 
     fclose(f);
 }

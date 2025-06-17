@@ -6,7 +6,7 @@
 #define TIPO_NACK 1              // nack normal
 #define TIPO_OK_ACK 2            // movimento aceito + ack
 // tipo = 3 livre
-#define TIPO_TAM 4               // tamanho do arquivo a ser enviado
+#define TIPO_TAMANHO 4           // tamanho do arquivo a ser enviado
 #define TIPO_DADOS 5             // dados do arquivo
 #define TIPO_TEXTO_ACK 6         // arquivo é texto + nome do arquivo + ack
 #define TIPO_VIDEO_ACK 7         // arquivo é vídeo + nome do arquivo + ack
