@@ -5,6 +5,11 @@
 #include "caca_tesouro.h"
 #include "tipo.h"
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/statvfs.h>
+#include <sys/stat.h>
+
 #define REDE_ENVIA "enp1s0"
 
 const char tipo_do_comando(int comando);

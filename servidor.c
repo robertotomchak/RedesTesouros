@@ -1,5 +1,32 @@
 #include "servidor.h"
 
+// define se valor deve ser imprimido em termos de B, KB, MB ou GB
+char grandeza(size_t valor) {
+    if (valor < 1024)
+        return ' ';
+    else if (valor < 1024*1024)
+        return 'K';
+    else if (valor < 1024*1024*1024)
+        return 'M';
+    return 'G';
+}
+
+// função auxiliar para imprimir envio do arquivo bonitinho
+void imprime_progresso_envio(const char *nome_arquivo, size_t atual, size_t total) {
+    fflush(stdout);
+    printf("\r%s: ", nome_arquivo);
+    size_t atual_reduzido = atual;
+    while (atual_reduzido > 1024) atual_reduzido /= 1024;
+    printf("%ld%cB / ", atual_reduzido, grandeza(atual));
+    size_t total_reduzido = total;
+    while (total_reduzido > 1024) total_reduzido /= 1024;
+    printf("%ld%cB ", total_reduzido, grandeza(total));
+    double porcent = 100 * ((double) atual) / total;
+    printf("(%.2f%%)", porcent);
+    // uns espaço a mais só para evitar problemas no print
+    printf("                          ");
+}
+
 const char tipo_do_comando(int comando){
     switch (comando) {
         case TIPO_ESQUERDA:
@@ -25,10 +52,24 @@ void envia(const char *nome_arquivo, gerenciador_t *gerenciador) {
         return;
     }
 
-    char buffer[BUFFER_SIZE];
-    size_t bytes_lidos;
     mensagem_t *msg_ack;
     int erro;
+
+    // primeiro, enviar tamanho do arquivo
+    struct stat st;
+    stat(caminho_arquivo, &st);
+    size_t tamanho_arq = st.st_size;
+    envia_mensagem(gerenciador, sizeof(unsigned int), TIPO_TAMANHO, (uchar_t *) &tamanho_arq);
+    erro = espera_ack(gerenciador, &msg_ack);
+    while (erro) {
+        reenvia(gerenciador);
+        erro = espera_ack(gerenciador, &msg_ack);
+    }
+    // TODO: usar dados do ack para saber se deu tudo certo
+
+    char buffer[BUFFER_SIZE];
+    size_t bytes_lidos;
+    size_t bytes_enviados = 0;
     while ((bytes_lidos = fread(buffer, 1, BUFFER_SIZE, f)) > 0) {
         envia_mensagem(gerenciador, bytes_lidos, TIPO_DADOS, (uchar_t *) buffer);
         erro = espera_ack(gerenciador, &msg_ack);
@@ -36,11 +77,10 @@ void envia(const char *nome_arquivo, gerenciador_t *gerenciador) {
             reenvia(gerenciador);
             erro = espera_ack(gerenciador, &msg_ack);
         }
-        printf("MENSAGEM ENVIADA COM SUCESSO\n");
+        bytes_enviados += bytes_lidos;
+        imprime_progresso_envio(nome_arquivo, bytes_enviados, tamanho_arq);
     }
     // última mensagem para dizer que acabou
-    // TODO: talvez aqui precise do while (erro) ...
-    // pra saber que cliente recebeu o FIM_ARQUIVO
     envia_mensagem(gerenciador, 0, TIPO_FIM_ARQUIVO, (uchar_t *) buffer);
     erro = espera_ack(gerenciador, &msg_ack);
     while (erro) {
@@ -48,7 +88,7 @@ void envia(const char *nome_arquivo, gerenciador_t *gerenciador) {
         erro = espera_ack(gerenciador, &msg_ack);
     }
     fclose(f);
-    printf("TERMINOU DE ENVIAR ARQUIVO\n");
+    printf("\r%s enviado com sucesso       \n", nome_arquivo);
 }
 
 const char* obter_extensao(const char *arquivo) {
@@ -106,7 +146,6 @@ void servidor(){
                 reenvia(gerenciador);
                 erro = espera_ack(gerenciador, &msg_ack);
             }
-            printf("MENSAGEM ENVIADA COM SUCESSO DO TIPO DE ARQUIVO\n");
             envia(movimento, gerenciador); // envia o arquivo
 
             exibe_tabuleiro(tabuleiro, SERVIDOR);
