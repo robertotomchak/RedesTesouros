@@ -1,5 +1,32 @@
 #include "cliente.h"
 
+// define se valor deve ser imprimido em termos de B, KB, MB ou GB
+char grandeza_(size_t valor) {
+    if (valor < 1024)
+        return ' ';
+    else if (valor < 1024*1024)
+        return 'K';
+    else if (valor < 1024*1024*1024)
+        return 'M';
+    return 'G';
+}
+
+// função auxiliar para imprimir envio do arquivo bonitinho
+void imprime_progresso_envio_(const char *nome_arquivo, size_t atual, size_t total) {
+    fflush(stdout);
+    printf("\r%s: ", nome_arquivo);
+    size_t atual_reduzido = atual;
+    while (atual_reduzido > 1024) atual_reduzido /= 1024;
+    printf("%ld%cB / ", atual_reduzido, grandeza_(atual));
+    size_t total_reduzido = total;
+    while (total_reduzido > 1024) total_reduzido /= 1024;
+    printf("%ld%cB ", total_reduzido, grandeza_(total));
+    double porcent = 100 * ((double) atual) / total;
+    printf("(%.2f%%)", porcent);
+    // uns espaço a mais só para evitar problemas no print
+    printf("                          ");
+}
+
 
 void abrir_arquivo(const char *arquivo){
     const char *usuario = getenv("SUDO_USER");
@@ -69,51 +96,48 @@ void receba(const char *nome_arquivo, gerenciador_t *gerenciador) {
     int resposta;
 
     // primeiro, receber tamanho do arquivo e ver se cabe no disco
-    unsigned int tamanho_arq;
+    size_t tamanho_arq;
     do {
         msg_recebida = recebe_mensagem(gerenciador, &resposta);
         if (resposta == -1)
             continue;
 
         if (msg_recebida && msg_recebida->tipo == TIPO_TAMANHO)
-            tamanho_arq = *(unsigned int *) msg_recebida->dados;
+            tamanho_arq = *(size_t *) msg_recebida->dados;
         
         // enviar ack
         if (resposta == 0) {
-            printf("ENVIANDO ACK...\n");
             envia_mensagem(gerenciador, 0, TIPO_ACK, (uchar_t *) 1);
         }
         // enviar nack
         else if (resposta == 1) {
-            printf("ENVIANDO NACK...\n");
             envia_mensagem(gerenciador, 0, TIPO_NACK, (uchar_t *) 1);
         }
     } while(!msg_recebida);
-    printf("RECEBI UM ARQUIVO DE TAMANHO %d\n", tamanho_arq);
 
 
+    size_t bytes_recebidos = 0;
     do {
         msg_recebida = recebe_mensagem(gerenciador, &resposta);
         if (resposta == -1)
             continue;
         // processar mensagem
         if (msg_recebida && msg_recebida->tipo == TIPO_DADOS) {
-            //printf("ESCREVENDO %d BYTES\n", msg_recebida->tamanho);
+            bytes_recebidos += msg_recebida->tamanho;
             fwrite(msg_recebida->dados, 1, msg_recebida->tamanho, f);
+            imprime_progresso_envio_(nome_arquivo, bytes_recebidos, tamanho_arq);
         }
         // enviar ack
         if (resposta == 0) {
-            //printf("ENVIANDO ACK DO %d\n", msg_recebida->tipo);
             envia_mensagem(gerenciador, 0, TIPO_ACK, (uchar_t *) 1);
         }
         // enviar nack
         else if (resposta == 1) {
-            //printf("ENVIANDO NACK...\n");
             envia_mensagem(gerenciador, 0, TIPO_NACK, (uchar_t *) 1);
         }
     } while(!msg_recebida || msg_recebida->tipo != TIPO_FIM_ARQUIVO);
 
-
+    printf("\n");
     fclose(f);
 }
 
