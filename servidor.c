@@ -59,7 +59,7 @@ void envia(const char *nome_arquivo, gerenciador_t *gerenciador) {
     struct stat st;
     stat(caminho_arquivo, &st);
     size_t tamanho_arq = st.st_size;
-    envia_mensagem(gerenciador, sizeof(unsigned int), TIPO_TAMANHO, (uchar_t *) &tamanho_arq);
+    envia_mensagem(gerenciador, sizeof(size_t), TIPO_TAMANHO, (uchar_t *) &tamanho_arq);
     erro = espera_ack(gerenciador, &msg_ack);
     while (erro) {
         reenvia(gerenciador);
