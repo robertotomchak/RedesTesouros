@@ -129,7 +129,9 @@ int envia_mensagem(gerenciador_t *gerenciador, uchar_t tamanho, uchar_t tipo, uc
     libera_protocolo(novo_protocolo);
     if (gerenciador->ultima_enviada)
         libera_mensagem(gerenciador->ultima_enviada);
-    gerenciador->ultima_enviada = nova_mensagem;
+    // mensagens de ack/nack não são salvas pra sequência
+    if (!eh_ack(nova_mensagem) && !eh_nack(nova_mensagem))
+        gerenciador->ultima_enviada = nova_mensagem;
 
     return 0;
 }
@@ -162,21 +164,21 @@ mensagem_t *recebe_mensagem(gerenciador_t *gerenciador, int *resposta) {
 
     // verifica se sequencia ta correta
     // se for a mesma sequencia da última, não processa e devolta ack
-    //if (gerenciador->ultima_recebida && gerenciador->ultima_recebida->sequencia == nova_mensagem->sequencia) {
-    //    *resposta = 0;
-    //    return NULL;
-    //}
+    if (gerenciador->ultima_recebida && gerenciador->ultima_recebida->sequencia == nova_mensagem->sequencia) {
+        *resposta = 0;
+        return NULL;
+    }
     // se for primeira mensagem e sequencia = 0 ou sequencia = sequencia_anterior + 1
-    /*uchar_t sequencia_correta;
+    uchar_t sequencia_correta;
     if (gerenciador->ultima_recebida)
         sequencia_correta = (gerenciador->ultima_recebida->sequencia + 1) % TAM_SEQUENCIA;
     else
-        sequencia_correta = 0;*/
-    /*if (nova_mensagem->sequencia != sequencia_correta) {
+        sequencia_correta = 0;
+    if (nova_mensagem->sequencia != sequencia_correta) {
         // sequência incorreta -> enviar nack
         *resposta = 1;
         return NULL;
-    }*/
+    }
 
     // libera antiga mensagem e guarda nova
     if (gerenciador->ultima_recebida)
