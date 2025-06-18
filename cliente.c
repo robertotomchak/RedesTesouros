@@ -27,21 +27,20 @@ void imprime_progresso_envio_(const char *nome_arquivo, size_t atual, size_t tot
     printf("                          ");
 }
 
-
 void abrir_arquivo(const char *arquivo){
+    // descobrindo quem foi o usuário que executou o código em modo sudo
     const char *usuario = getenv("SUDO_USER");
     if (!usuario) {
         fprintf(stderr, "Erro: SUDO_USER não encontrado. O programa deve ser executado com sudo.\n");
         return;
     }
-
     struct passwd *pw = getpwnam(usuario);
     if (!pw) {
         fprintf(stderr, "Erro: Não foi possível obter informações do usuário %s.\n", usuario);
         return;
     }
 
-    // Mudar o dono do arquivo (se quiser manter isso)
+    // Mudar o dono do arquivo
     if (chown(arquivo, pw->pw_uid, pw->pw_gid) != 0) {
         perror("Erro ao mudar o dono do arquivo");
     }
@@ -56,13 +55,11 @@ void abrir_arquivo(const char *arquivo){
         return;
     }
 
-    printf("Abrindo o arquivo %s como usuário %s...\n", arquivo, usuario);
-
+    // executa o comando para abrir o arquivo, com as permissões necessárias
     char comando[512];
     snprintf(comando, sizeof(comando),
         "sudo -u %s DISPLAY='%s' DBUS_SESSION_BUS_ADDRESS='%s' XDG_RUNTIME_DIR='%s' xdg-open '%s' >/dev/null 2>&1 &",
         usuario, display, dbus, runtime, arquivo);
-
     system(comando);
 }
 
@@ -116,6 +113,8 @@ void receba(const char *nome_arquivo, gerenciador_t *gerenciador) {
     } while(!msg_recebida);
 
 
+    // agora, receber arquivo aos poucos
+    // até receber o fim de arquivo
     size_t bytes_recebidos = 0;
     do {
         msg_recebida = recebe_mensagem(gerenciador, &resposta);
@@ -172,7 +171,6 @@ void cliente(){
         int sucesso_nack = 0;
         
         envia_comando(gerenciador, tipo_comando);
-        printf("TECLA DIGITADA: %c %d\n", comando, comando);
         erro = espera_ack(gerenciador, &msg_ack);
         while (erro) {
             reenvia(gerenciador);
@@ -192,8 +190,6 @@ void cliente(){
                 case TIPO_VIDEO_ACK:
                 case TIPO_TEXTO_ACK:
                     tabuleiro->cont_tesouros++;
-                    // TODO: acho que envia_mensagem tá ok. Só talvez tenha que adicionar lógica
-                    // para reenviar mensagem se servidor não receber o ack
                     envia_mensagem(gerenciador, 0, TIPO_ACK, NULL);
                     while (erro) {
                         reenvia(gerenciador);
@@ -207,7 +203,6 @@ void cliente(){
                     abrir_arquivo(nome_arquivo);
                     sucesso_nack = 1;
                     break;
-                // TODO: esse caso pode acontecer?
                 case TIPO_NACK:
                     printf("Servidor rejeitou o comando. Reenviando...\n");
                     // Reenvia até ter sucesso
