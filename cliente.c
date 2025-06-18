@@ -84,6 +84,13 @@ void envia_comando (gerenciador_t *gerenciador, int movimento){
 }
 
 void receba(const char *nome_arquivo, gerenciador_t *gerenciador) {
+    // tempo de início do recebimento
+    struct timeval start, end;
+    long seconds, useconds;
+    double total_time;
+    gettimeofday(&start, NULL);
+
+
     FILE *f = fopen(nome_arquivo, "wb");
     if (!f) {
         perror("Erro ao abrir arquivo");
@@ -113,6 +120,7 @@ void receba(const char *nome_arquivo, gerenciador_t *gerenciador) {
     } while(!msg_recebida);
 
 
+
     // agora, receber arquivo aos poucos
     // até receber o fim de arquivo
     size_t bytes_recebidos = 0;
@@ -138,6 +146,16 @@ void receba(const char *nome_arquivo, gerenciador_t *gerenciador) {
 
     printf("\n");
     fclose(f);
+
+    // tempo de fim do recebimento
+    gettimeofday(&end, NULL);
+    seconds  = end.tv_sec  - start.tv_sec;
+    useconds = end.tv_usec - start.tv_usec;
+    total_time = seconds + useconds/1e6;
+
+    // resultado do tempo e taxa de transmissão
+    printf("Tempo total: %f segundos\n", total_time);
+    printf("Taxa média de transmissão: %.0f B/s\n", tamanho_arq / total_time);
 }
 
 void cliente(){

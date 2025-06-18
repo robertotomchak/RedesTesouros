@@ -6,6 +6,7 @@
 #include "tipo.h"
 
 #include <sys/types.h>
+#include <sys/time.h>
 #include <pwd.h>
 #include <unistd.h>
 
