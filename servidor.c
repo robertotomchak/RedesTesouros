@@ -66,6 +66,7 @@ void envia(const char *nome_arquivo, gerenciador_t *gerenciador) {
         erro = espera_ack(gerenciador, &msg_ack);
     }
 
+    printf("Enviando arquivo %s para cliente.\n", nome_arquivo);
     char buffer[BUFFER_SIZE];
     size_t bytes_lidos;
     size_t bytes_enviados = 0;
