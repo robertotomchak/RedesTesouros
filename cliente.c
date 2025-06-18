@@ -182,7 +182,6 @@ void cliente(){
                 // movimento aceito
                 case TIPO_OK_ACK:
                     movimentacao(tabuleiro, comando);
-                    exibe_tabuleiro(tabuleiro, CLIENTE);
                     sucesso_nack = 1;  // sai do while
                     break;
                 // caiu num tesouro
@@ -199,6 +198,8 @@ void cliente(){
                     exibe_tabuleiro(tabuleiro, CLIENTE);
                     memcpy(nome_arquivo, msg_recebida->dados, msg_recebida->tamanho);
                     nome_arquivo[msg_recebida->tamanho] = '\0';
+                    printf("Parabéns! Você encontrou o tesouro %s em (%d,%d)!\n", 
+                        nome_arquivo, tabuleiro->pos_x, tabuleiro->pos_y);
                     receba(nome_arquivo, gerenciador);
                     abrir_arquivo(nome_arquivo);
                     sucesso_nack = 1;
