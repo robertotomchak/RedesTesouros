@@ -127,11 +127,14 @@ int envia_mensagem(gerenciador_t *gerenciador, uchar_t tamanho, uchar_t tipo, uc
     int _;  // não precisamos verificar o erro da mensagem
     mensagem_t *nova_mensagem = cria_mensagem(novo_protocolo, &_);
     libera_protocolo(novo_protocolo);
+
+    // mensagens de ack/nack não são salvas pra sequência
+    if (eh_ack(nova_mensagem) || eh_nack(nova_mensagem))
+        return 0;
+
     if (gerenciador->ultima_enviada)
         libera_mensagem(gerenciador->ultima_enviada);
-    // mensagens de ack/nack não são salvas pra sequência
-    if (!eh_ack(nova_mensagem) && !eh_nack(nova_mensagem))
-        gerenciador->ultima_enviada = nova_mensagem;
+    gerenciador->ultima_enviada = nova_mensagem;
 
     return 0;
 }
