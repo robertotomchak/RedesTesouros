@@ -156,40 +156,56 @@ void cliente(){
             erro = espera_ack(gerenciador, &msg_recebida);
         }
 
-        switch (msg_recebida->tipo) {
-            // movimento aceito, ou seja só andou no tabuleiro
-            case TIPO_OK_ACK:
-                movimentacao(tabuleiro, comando);
-                break;
-            // caiu num tesouro
-            case TIPO_IMAGEM_ACK:
-            case TIPO_VIDEO_ACK:
-            case TIPO_TEXTO_ACK:
-                tabuleiro->cont_tesouros++;
-                // envia ack para o servidor dizendo que recebeu o comando
-                envia_mensagem(gerenciador, 0, TIPO_ACK, NULL);
-                while (erro) {
-                    reenvia(gerenciador);
-                    erro = espera_ack(gerenciador, &msg_ack);
-                }
-                // permite movimentar no tabuleiro
-                movimentacao(tabuleiro, comando);
-                exibe_tabuleiro(tabuleiro);
-                memcpy(nome_arquivo, msg_recebida->dados, msg_recebida->tamanho);
-                nome_arquivo[msg_recebida->tamanho] = '\0';
-                printf("Parabéns! Você encontrou o tesouro %s em (%d,%d)!\n", 
-                    nome_arquivo, tabuleiro->pos_x, tabuleiro->pos_y);
-                receba(nome_arquivo, gerenciador);
-                abrir_arquivo(nome_arquivo);
-                break;
-            // movimento não válido (saiu do tabuleiro, etc)
-            case TIPO_ACK:
-                printf("Movimento inválido, bateu na parede!\n");
-                break;
-            default:
-                printf("Mensagem inesperada! Tipo %d\n", msg_recebida->tipo);
+        int sucesso_nack = 0;
+        while (!sucesso_nack) {
+            switch (msg_recebida->tipo) {
+                // movimento aceito, ou seja só andou no tabuleiro
+                case TIPO_OK_ACK:
+                    movimentacao(tabuleiro, comando);
+                    break;
+                // caiu num tesouro
+                case TIPO_IMAGEM_ACK:
+                case TIPO_VIDEO_ACK:
+                case TIPO_TEXTO_ACK:
+                    tabuleiro->cont_tesouros++;
+                    // envia ack para o servidor dizendo que recebeu o comando
+                    envia_mensagem(gerenciador, 0, TIPO_ACK, NULL);
+                    while (erro) {
+                        reenvia(gerenciador);
+                        erro = espera_ack(gerenciador, &msg_ack);
+                    }
+                    // permite movimentar no tabuleiro
+                    movimentacao(tabuleiro, comando);
+                    exibe_tabuleiro(tabuleiro);
+                    memcpy(nome_arquivo, msg_recebida->dados, msg_recebida->tamanho);
+                    nome_arquivo[msg_recebida->tamanho] = '\0';
+                    printf("Parabéns! Você encontrou o tesouro %s em (%d,%d)!\n", 
+                        nome_arquivo, tabuleiro->pos_x, tabuleiro->pos_y);
+                    receba(nome_arquivo, gerenciador);
+                    abrir_arquivo(nome_arquivo);
+                    break;
+                // movimento não válido (saiu do tabuleiro, etc)
+                case TIPO_NACK:
+                    printf("Servidor rejeitou o comando. Reenviando...\n");
+                    // Reenvia até ter sucesso
+                    while (reenvia(gerenciador)) {
+                        printf("Erro ao reenviar. Tentando novamente...\n");
+                    }
+                    break;
+                // movimento não válido (saiu do tabuleiro, etc)
+                case TIPO_ACK:
+                    printf("Movimento inválido!\n");
+                    sucesso_nack = 1; 
+                    break;
+                case TIPO_ERRO:
+                    printf("Comando invalido!\n");
+                    sucesso_nack = 1; 
+                    break;
+                default:
+                    printf("Mensagem inesperada! Tipo %d\n", msg_recebida->tipo);
+                    sucesso_nack = 1;  // sai do loop em caso de erro
+            }
         }
-
     }
     
     libera_tabuleiro(tabuleiro);
