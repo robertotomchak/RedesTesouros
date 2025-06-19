@@ -139,7 +139,7 @@ void cliente(){
             comando = linha[0]; // lê o primeiro caractere digitado
         }
         while (comando != 'a' && comando != 'w' && comando != 'd' && comando != 's') {
-            printf("Comando inválido. \n Digite apenas w, a, s ou d:");
+            printf("Comando inválido. \nDigite apenas w, a, s ou d:");
             if (fgets(linha, sizeof(linha), stdin) != NULL) {
                 comando = linha[0];
             }
@@ -150,12 +150,12 @@ void cliente(){
         
         // envia o comando para o servidor 
         envia_comando(gerenciador, tipo_comando);
-        erro = espera_ack(gerenciador, &msg_recebida);
+        erro = espera_ack(gerenciador, &msg_ack);
         while (erro) {
             reenvia(gerenciador);
-            erro = espera_ack(gerenciador, &msg_recebida);
+            erro = espera_ack(gerenciador, &msg_ack);
         }
-
+        msg_recebida = msg_ack;
         int sucesso_nack = 0;
         while (!sucesso_nack) {
             switch (msg_recebida->tipo) {
