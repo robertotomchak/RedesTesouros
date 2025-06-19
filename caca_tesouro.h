@@ -8,38 +8,41 @@
 #include <dirent.h> 
 #include <string.h>
 #include "gerenciador.h"
-#include "tipo.h"
+#include "utils.h"
 
 #define BUFFER_SIZE (1 << 7) - 1
 #define TAM_MAX 8
-#define CLIENTE 0
-#define SERVIDOR 1
 
+// definições para usar na função de movimentação
 #define MOVIMENTO_INVALIDO "invalido"
 #define MOVIMENTO_ACEITO "aceito"
 
 typedef unsigned char uchar_t;
 
 typedef struct {
-    unsigned short posicao;
-    char arquivo[64];
+    unsigned short posicao;         // posição de 0-63 que indica em qual quadrado está os tesouros
+    char arquivo[64];               // nome do arquivo
 } tesouro_t;
 
 typedef struct {
-    uchar_t pos_x;
-    uchar_t pos_y;
-    char **matriz;
-    char **deslocamento;
-    tesouro_t tesouros[TAM_MAX];
-    uchar_t cont_tesouros;
+    uchar_t pos_x;                  // pos_x e pos_y indica a posição atual do jogador
+    uchar_t pos_y;                   
+    char **matriz;                  // é o proprio tabuleiro, onde "." é sem tesouro e T o contrario
+    char **deslocamento;            // matriz booleana, onde 0 é que caminho desconhecido e 1 o contrario
+    tesouro_t tesouros[TAM_MAX];    // vetor de todos os 8 tesouros
+    uchar_t cont_tesouros;          // quantidade de tesouros encontrados
 } tabuleiro_t;
 
+// função que inicializa o tabuleiro
 tabuleiro_t *inicializa_tabuleiro ();
 
+// servidor usa a função para sortear posições dos tesouros no tabuleiro
 void sorteia_tesouros (tabuleiro_t *tabuleiro);
 
-void exibe_tabuleiro (tabuleiro_t *tabuleiro, int tipo);
+// mostra o tabuleiro conforme se é servidor ou cliente
+void exibe_tabuleiro(tabuleiro_t *tabuleiro);
 
+// realiza a movimentação do jogador na tela
 const char* movimentacao(tabuleiro_t *tabuleiro, const char comando);
 
 void libera_tabuleiro(tabuleiro_t *tabuleiro);

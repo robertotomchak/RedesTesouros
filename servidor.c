@@ -1,48 +1,6 @@
 #include "servidor.h"
 
-// define se valor deve ser imprimido em termos de B, KB, MB ou GB
-char grandeza(size_t valor) {
-    if (valor < 1024)
-        return ' ';
-    else if (valor < 1024*1024)
-        return 'K';
-    else if (valor < 1024*1024*1024)
-        return 'M';
-    return 'G';
-}
-
-// função auxiliar para imprimir envio do arquivo bonitinho
-void imprime_progresso_envio(const char *nome_arquivo, size_t atual, size_t total) {
-    fflush(stdout);
-    printf("\r%s: ", nome_arquivo);
-    size_t atual_reduzido = atual;
-    while (atual_reduzido > 1024) atual_reduzido /= 1024;
-    printf("%ld%cB / ", atual_reduzido, grandeza(atual));
-    size_t total_reduzido = total;
-    while (total_reduzido > 1024) total_reduzido /= 1024;
-    printf("%ld%cB ", total_reduzido, grandeza(total));
-    double porcent = 100 * ((double) atual) / total;
-    printf("(%.2f%%)", porcent);
-    // uns espaço a mais só para evitar problemas no print
-    printf("                          ");
-}
-
-const char tipo_do_comando(int comando){
-    switch (comando) {
-        case TIPO_ESQUERDA:
-            return 'a';
-        case TIPO_CIMA:
-            return 'w';
-        case TIPO_DIREITA:
-            return 'd';
-        case TIPO_BAIXO:
-            return 's';
-        default:
-            printf("Comando inválido.\n");
-            return '\0';
-    }
-}
-
+// função que faz o envio do arquivo para o cliente
 void envia(const char *nome_arquivo, gerenciador_t *gerenciador) {
     char caminho_arquivo[100];
     snprintf(caminho_arquivo, sizeof(caminho_arquivo), "objetos/%s", nome_arquivo);
@@ -56,9 +14,7 @@ void envia(const char *nome_arquivo, gerenciador_t *gerenciador) {
     int erro;
 
     // primeiro, enviar tamanho do arquivo
-    struct stat st;
-    stat(caminho_arquivo, &st);
-    size_t tamanho_arq = st.st_size;
+    size_t tamanho_arq = tamanho_arquivo(caminho_arquivo);
     envia_mensagem(gerenciador, sizeof(size_t), TIPO_TAMANHO, (uchar_t *) &tamanho_arq);
     erro = espera_ack(gerenciador, &msg_ack);
     while (erro) {
@@ -91,12 +47,7 @@ void envia(const char *nome_arquivo, gerenciador_t *gerenciador) {
     printf("\r%s enviado com sucesso       \n", nome_arquivo);
 }
 
-const char* obter_extensao(const char *arquivo) {
-    const char *extensao = strrchr(arquivo, '.');
-    if (!extensao || extensao == arquivo) return "";
-    return extensao + 1;
-}
-
+// função geral que comanda o lado servidor
 void servidor(){
     tabuleiro_t *tabuleiro = inicializa_tabuleiro();
     sorteia_tesouros(tabuleiro);
@@ -107,47 +58,62 @@ void servidor(){
     mensagem_t *msg_recebida, *msg_ack;
     int resposta, erro;
 
+    // laço principal do jogo
     while (tabuleiro->cont_tesouros < 8) {
         do {
             msg_recebida = recebe_mensagem(gerenciador, &resposta);
         } while (!msg_recebida || resposta == -1);
-        // Pega o tipo do comando
+
+        // pega o tipo do comando que o cliente enviou
         const char comando = tipo_do_comando (msg_recebida->tipo);
+
+        /* recebe o tipo de movimento com base no comando passado pelo cliente, os quais sao:
+           "aceito", "invalido" ou o nome completo do arquivo*/
         const char *movimento = movimentacao(tabuleiro, comando);
         
+        // movimento em que bateu na parede devolve ack dizendo que receber, mas que nao movimentou
         if (strcmp(movimento, MOVIMENTO_INVALIDO) == 0) {
             envia_mensagem(gerenciador, 0, TIPO_ACK, NULL);
-            exibe_tabuleiro(tabuleiro, SERVIDOR);
+            exibe_tabuleiro(tabuleiro);
             continue;
+        
+        // o movimento do jogador foi aceito, ou seja so vai andar e nao encotrou um tesouro
         } else if (strcmp(movimento, MOVIMENTO_ACEITO) == 0) {
             // quando permitiu a movimentação o jogador/cliente precisa saber dessa condição
             envia_mensagem(gerenciador, 0, TIPO_OK_ACK, NULL);
-            exibe_tabuleiro(tabuleiro, SERVIDOR);
+            exibe_tabuleiro(tabuleiro);
             continue;
         }
+
+        // movimento resultou no encontro de um tesouro e agora com base no nome do 
+        // arquivo devolvido irá devolver o tipo na mensagem para o cliente 
         else {
             int tipo_ack;
-            if (strcmp(obter_extensao(movimento), "txt") == 0) {
-                printf("%s\n",obter_extensao(movimento));
+            const char *extensao = obter_extensao(movimento);
+            if (strcmp(extensao, "txt") == 0) {
                 tipo_ack = TIPO_TEXTO_ACK;
-            } else if (strcmp(obter_extensao(movimento), "jpg") == 0) {
-                printf("%s\n",obter_extensao(movimento));
+            } else if (strcmp(extensao, "jpg") == 0) {
                 tipo_ack = TIPO_IMAGEM_ACK;
-            } else if (strcmp(obter_extensao(movimento), "mp4") == 0) {
+            } else if (strcmp(extensao, "mp4") == 0) {
                 tipo_ack = TIPO_VIDEO_ACK;
             } else {
                 tipo_ack = TIPO_ERRO;
             }
 
+            // envia mensagem com o tipo encontrado no if o nome do arquivo como dados da mensagem 
             envia_mensagem(gerenciador, strlen(movimento) + 1, tipo_ack, (uchar_t *) movimento);
+            
+            // espera o ack do cliente que recebeu a mensagem
             erro = espera_ack(gerenciador, &msg_ack);
             while (erro) {
                 reenvia(gerenciador);
                 erro = espera_ack(gerenciador, &msg_ack);
             }
-            envia(movimento, gerenciador); // envia o arquivo
 
-            exibe_tabuleiro(tabuleiro, SERVIDOR);
+            // envia o arquivo para o cliente
+            envia(movimento, gerenciador);
+
+            exibe_tabuleiro(tabuleiro);
         }
 
     }

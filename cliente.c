@@ -1,32 +1,5 @@
 #include "cliente.h"
 
-// define se valor deve ser imprimido em termos de B, KB, MB ou GB
-char grandeza_(size_t valor) {
-    if (valor < 1024)
-        return ' ';
-    else if (valor < 1024*1024)
-        return 'K';
-    else if (valor < 1024*1024*1024)
-        return 'M';
-    return 'G';
-}
-
-// função auxiliar para imprimir envio do arquivo bonitinho
-void imprime_progresso_envio_(const char *nome_arquivo, size_t atual, size_t total) {
-    fflush(stdout);
-    printf("\r%s: ", nome_arquivo);
-    size_t atual_reduzido = atual;
-    while (atual_reduzido > 1024) atual_reduzido /= 1024;
-    printf("%ld%cB / ", atual_reduzido, grandeza_(atual));
-    size_t total_reduzido = total;
-    while (total_reduzido > 1024) total_reduzido /= 1024;
-    printf("%ld%cB ", total_reduzido, grandeza_(total));
-    double porcent = 100 * ((double) atual) / total;
-    printf("(%.2f%%)", porcent);
-    // uns espaço a mais só para evitar problemas no print
-    printf("                          ");
-}
-
 void abrir_arquivo(const char *arquivo){
     // descobrindo quem foi o usuário que executou o código em modo sudo
     const char *usuario = getenv("SUDO_USER");
@@ -63,26 +36,12 @@ void abrir_arquivo(const char *arquivo){
     system(comando);
 }
 
-int tipo_de_movimento (char comando){
-    switch (comando) {
-        case 'a':
-            return TIPO_ESQUERDA;
-        case 'w':
-            return TIPO_CIMA;
-        case 'd':
-            return TIPO_DIREITA;
-        case 's':
-            return TIPO_BAIXO;
-        default:
-            printf("Comando inválido.\n");
-            return TIPO_ERRO;
-    }
-}
-
+// função apenas para enviar comando para o servidor
 void envia_comando (gerenciador_t *gerenciador, int movimento){
     envia_mensagem(gerenciador, 0, movimento, (uchar_t *) 1);
 }
 
+// função que serve para receber o arquivo do servidor
 void receba(const char *nome_arquivo, gerenciador_t *gerenciador) {
     // tempo de início do recebimento
     struct timeval start, end;
@@ -132,7 +91,7 @@ void receba(const char *nome_arquivo, gerenciador_t *gerenciador) {
         if (msg_recebida && msg_recebida->tipo == TIPO_DADOS) {
             bytes_recebidos += msg_recebida->tamanho;
             fwrite(msg_recebida->dados, 1, msg_recebida->tamanho, f);
-            imprime_progresso_envio_(nome_arquivo, bytes_recebidos, tamanho_arq);
+            imprime_progresso_envio(nome_arquivo, bytes_recebidos, tamanho_arq);
         }
         // enviar ack
         if (resposta == 0) {
@@ -158,6 +117,7 @@ void receba(const char *nome_arquivo, gerenciador_t *gerenciador) {
     printf("Taxa média de transmissão: %.0f B/s\n", tamanho_arq / total_time);
 }
 
+// função principal do cliente 
 void cliente(){
     tabuleiro_t *tabuleiro = inicializa_tabuleiro();
     gerenciador_t *gerenciador = malloc(sizeof(gerenciador_t));
@@ -172,76 +132,62 @@ void cliente(){
 
     while (tabuleiro->cont_tesouros < 8) {
         printf("TESOUROS ENCONTRADOS: %d\n", tabuleiro->cont_tesouros);
-        exibe_tabuleiro(tabuleiro, CLIENTE);
+        exibe_tabuleiro(tabuleiro);
         printf("Digite comando (w/a/s/d): ");
 
         if (fgets(linha, sizeof(linha), stdin) != NULL) {
             comando = linha[0]; // lê o primeiro caractere digitado
         }
         while (comando != 'a' && comando != 'w' && comando != 'd' && comando != 's') {
-            printf("Comando inválido. Use apenas w, a, s ou d.\n");
+            printf("Comando inválido. \n Digite apenas w, a, s ou d:");
             if (fgets(linha, sizeof(linha), stdin) != NULL) {
                 comando = linha[0];
             }
         }
         
+        // traduz o comando do input em tipo para a mensagem
         int tipo_comando = tipo_de_movimento(comando);
-        int sucesso_nack = 0;
         
+        // envia o comando para o servidor 
         envia_comando(gerenciador, tipo_comando);
-        erro = espera_ack(gerenciador, &msg_ack);
+        erro = espera_ack(gerenciador, &msg_recebida);
         while (erro) {
             reenvia(gerenciador);
-            erro = espera_ack(gerenciador, &msg_ack);
+            erro = espera_ack(gerenciador, &msg_recebida);
         }
-        msg_recebida = msg_ack;
-        while (!sucesso_nack) {
-            switch (msg_recebida->tipo) {
-                // movimento aceito
-                case TIPO_OK_ACK:
-                    movimentacao(tabuleiro, comando);
-                    sucesso_nack = 1;  // sai do while
-                    break;
-                // caiu num tesouro
-                case TIPO_IMAGEM_ACK:
-                case TIPO_VIDEO_ACK:
-                case TIPO_TEXTO_ACK:
-                    tabuleiro->cont_tesouros++;
-                    envia_mensagem(gerenciador, 0, TIPO_ACK, NULL);
-                    while (erro) {
-                        reenvia(gerenciador);
-                        erro = espera_ack(gerenciador, &msg_ack);
-                    }
-                    movimentacao(tabuleiro, comando);
-                    exibe_tabuleiro(tabuleiro, CLIENTE);
-                    memcpy(nome_arquivo, msg_recebida->dados, msg_recebida->tamanho);
-                    nome_arquivo[msg_recebida->tamanho] = '\0';
-                    printf("Parabéns! Você encontrou o tesouro %s em (%d,%d)!\n", 
-                        nome_arquivo, tabuleiro->pos_x, tabuleiro->pos_y);
-                    receba(nome_arquivo, gerenciador);
-                    abrir_arquivo(nome_arquivo);
-                    sucesso_nack = 1;
-                    break;
-                case TIPO_NACK:
-                    printf("Servidor rejeitou o comando. Reenviando...\n");
-                    // Reenvia até ter sucesso
-                    while (reenvia(gerenciador)) {
-                        printf("Erro ao reenviar. Tentando novamente...\n");
-                    }
-                    break;
-                // movimento não válido (saiu do tabuleiro, etc)
-                case TIPO_ACK:
-                    printf("Movimento inválido!\n");
-                    sucesso_nack = 1; 
-                    break;
-                case TIPO_ERRO:
-                    printf("Comando invalido!\n");
-                    sucesso_nack = 1; 
-                    break;
-                default:
-                    printf("Mensagem inesperada! Tipo %d\n", msg_recebida->tipo);
-                    sucesso_nack = 1;  // sai do loop em caso de erro
-            }
+
+        switch (msg_recebida->tipo) {
+            // movimento aceito, ou seja só andou no tabuleiro
+            case TIPO_OK_ACK:
+                movimentacao(tabuleiro, comando);
+                break;
+            // caiu num tesouro
+            case TIPO_IMAGEM_ACK:
+            case TIPO_VIDEO_ACK:
+            case TIPO_TEXTO_ACK:
+                tabuleiro->cont_tesouros++;
+                // envia ack para o servidor dizendo que recebeu o comando
+                envia_mensagem(gerenciador, 0, TIPO_ACK, NULL);
+                while (erro) {
+                    reenvia(gerenciador);
+                    erro = espera_ack(gerenciador, &msg_ack);
+                }
+                // permite movimentar no tabuleiro
+                movimentacao(tabuleiro, comando);
+                exibe_tabuleiro(tabuleiro);
+                memcpy(nome_arquivo, msg_recebida->dados, msg_recebida->tamanho);
+                nome_arquivo[msg_recebida->tamanho] = '\0';
+                printf("Parabéns! Você encontrou o tesouro %s em (%d,%d)!\n", 
+                    nome_arquivo, tabuleiro->pos_x, tabuleiro->pos_y);
+                receba(nome_arquivo, gerenciador);
+                abrir_arquivo(nome_arquivo);
+                break;
+            // movimento não válido (saiu do tabuleiro, etc)
+            case TIPO_ACK:
+                printf("Movimento inválido, bateu na parede!\n");
+                break;
+            default:
+                printf("Mensagem inesperada! Tipo %d\n", msg_recebida->tipo);
         }
 
     }

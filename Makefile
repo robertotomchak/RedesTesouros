@@ -1,6 +1,6 @@
 # PROGRAMA
     PROG = main
-    OBJS = main.o mensagem.o gerenciador.o servidor.o cliente.o caca_tesouro.o
+    OBJS = main.o mensagem.o gerenciador.o servidor.o cliente.o caca_tesouro.o utils.o
 
 # Compilador
     CC   = gcc

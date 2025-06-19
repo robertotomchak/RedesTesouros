@@ -1,7 +1,6 @@
 #ifndef CLIENTE_H
 #define CLIENTE_H
 
-#include "gerenciador.h"
 #include "caca_tesouro.h"
 #include "tipo.h"
 
@@ -10,16 +9,17 @@
 #include <pwd.h>
 #include <unistd.h>
 
-#define REDE_RECEBE "enx00e04c68011f"
+#define REDE_RECEBE "enp1s0"
 
 void abrir_arquivo(const char *arquivo);
 
-int tipo_de_movimento (char comando);
-
+// função apenas para enviar comando para o servidor
 void envia_comando (gerenciador_t *gerenciador, int movimento);
 
+// função que serve para receber o arquivo do servidor
 void receba(const char *nome_arquivo, gerenciador_t *gerenciador);
 
+// função principal do cliente 
 void cliente();
 
 #endif

@@ -1,23 +1,19 @@
 #ifndef SERVIDOR_H
 #define SERVIDOR_H
 
-#include "gerenciador.h"
 #include "caca_tesouro.h"
-#include "tipo.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/statvfs.h>
 #include <sys/stat.h>
 
-#define REDE_ENVIA "enp1s0"
+#define REDE_ENVIA "enp7s0"
 
-const char tipo_do_comando(int comando);
-
+// função que faz o envio do arquivo para o cliente
 void envia(const char *nome_arquivo, gerenciador_t *gerenciador);
 
-const char* obter_extensao(const char *arquivo);
-
+// função geral que comanda o lado servidor
 void servidor();
 
 #endif
