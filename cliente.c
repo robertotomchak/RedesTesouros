@@ -78,7 +78,22 @@ void receba(const char *nome_arquivo, gerenciador_t *gerenciador) {
         }
     } while(!msg_recebida);
 
+    // verificando se cabe no disco
+    struct statvfs st;
+        if (statvfs(".", &st) != 0) {
+        perror("ERRO: não foi possível ver o espaço do disco.\n");
+        return;
+    }
 
+    size_t espaco_livre = st.f_bsize * st.f_bavail;
+    // se arquivo não cabe no disco, avisar e sair
+    if (tamanho_arq > espaco_livre) {
+        // avisando servidor
+        int dados_erro = ERRO_ESPACO;
+        envia_mensagem(gerenciador, sizeof(int), TIPO_ERRO, (void *) &dados_erro);
+        printf("Infelizmente, o arquivo não cabe no disco :( Vamos contunuar o jogo\n");
+        return;
+    }
 
     // agora, receber arquivo aos poucos
     // até receber o fim de arquivo

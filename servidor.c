@@ -21,6 +21,11 @@ void envia(const char *nome_arquivo, gerenciador_t *gerenciador) {
         reenvia(gerenciador);
         erro = espera_ack(gerenciador, &msg_ack);
     }
+    // se mensagem recebida for de erro, é porque não tinha espaço suficiente
+    if (msg_ack->tipo == TIPO_ERRO && * (int *) msg_ack->dados == ERRO_ESPACO) {
+        printf("CLIENTE AVISOU QUE ARQUIVO NÃO CABE NO SEU DISCO! Abortar envio do arquivo.\n");
+        return;
+    }
 
     printf("Enviando arquivo %s para cliente.\n", nome_arquivo);
     char buffer[BUFFER_SIZE];

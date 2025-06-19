@@ -8,8 +8,9 @@
 #include <sys/time.h>
 #include <pwd.h>
 #include <unistd.h>
+#include <sys/statvfs.h>
 
-#define REDE_RECEBE "enp1s0"
+#define REDE_RECEBE "enx00e04c68011f"
 
 void abrir_arquivo(const char *arquivo);
 

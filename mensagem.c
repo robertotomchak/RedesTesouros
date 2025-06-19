@@ -142,8 +142,8 @@ retorno: 1 se for ack, 0 caso contrário
 */
 int eh_ack(mensagem_t *mensagem) {
     uchar_t tipo = mensagem->tipo;
-    int acks[] = {TIPO_ACK, TIPO_OK_ACK, TIPO_TEXTO_ACK, TIPO_IMAGEM_ACK, TIPO_VIDEO_ACK};
-    int num = 5;  // quantas mensagens do tipo ack
+    int acks[] = {TIPO_ACK, TIPO_OK_ACK, TIPO_TEXTO_ACK, TIPO_IMAGEM_ACK, TIPO_VIDEO_ACK, TIPO_ERRO};
+    int num = 6;  // quantas mensagens do tipo ack
     for (int i = 0; i < num; i++)
         if (tipo == acks[i])
             return 1;

@@ -18,3 +18,6 @@
 #define TIPO_ESQUERDA 13         // movimente para esquerda
 // tipo = 14 livre
 #define TIPO_ERRO 15             // envia uma informação de erro
+
+#define ERRO_PERMISSAO 0         // sem permissão para abrir arquivo
+#define ERRO_ESPACO 1            // sem espaço suficiente para arquivo
