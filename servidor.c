@@ -62,6 +62,9 @@ void servidor(){
     while (tabuleiro->cont_tesouros < 8) {
         do {
             msg_recebida = recebe_mensagem(gerenciador, &resposta);
+            // mensagem recebida com erro, enviar nack
+            if (resposta == 1)
+                envia_mensagem(gerenciador, 0, TIPO_NACK, NULL);
         } while (!msg_recebida || resposta == -1);
 
         // pega o tipo do comando que o cliente enviou
