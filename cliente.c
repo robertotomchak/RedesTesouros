@@ -162,6 +162,7 @@ void cliente(){
                 // movimento aceito, ou seja só andou no tabuleiro
                 case TIPO_OK_ACK:
                     movimentacao(tabuleiro, comando);
+                    sucesso_nack = 1;
                     break;
                 // caiu num tesouro
                 case TIPO_IMAGEM_ACK:
@@ -183,6 +184,7 @@ void cliente(){
                         nome_arquivo, tabuleiro->pos_x, tabuleiro->pos_y);
                     receba(nome_arquivo, gerenciador);
                     abrir_arquivo(nome_arquivo);
+                    sucesso_nack = 1;
                     break;
                 // movimento não válido (saiu do tabuleiro, etc)
                 case TIPO_NACK:
