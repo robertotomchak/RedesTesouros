@@ -5,13 +5,22 @@ void envia(const char *nome_arquivo, gerenciador_t *gerenciador) {
     char caminho_arquivo[100];
     snprintf(caminho_arquivo, sizeof(caminho_arquivo), "objetos/%s", nome_arquivo);
     FILE *f = fopen(caminho_arquivo, "rb");
-    if (!f) {
-        perror("Erro ao abrir arquivo");
-        return;
-    }
 
     mensagem_t *msg_ack;
     int erro;
+
+    // se não conseguir abrir o arquivo, avisar cliente e não mandar arquivo
+    if (!f) {
+        printf("Infelizmente, não tenho permissão para abrir o arquivo :(\n");
+        int dados_erro = ERRO_PERMISSAO;
+        envia_mensagem(gerenciador, sizeof(int), TIPO_ERRO, (uchar_t *) &dados_erro);
+        erro = espera_ack(gerenciador, &msg_ack);
+        while (erro) {
+            reenvia(gerenciador);
+            erro = espera_ack(gerenciador, &msg_ack);
+    }
+        return;
+    }
 
     // primeiro, enviar tamanho do arquivo
     size_t tamanho_arq = tamanho_arquivo(caminho_arquivo);

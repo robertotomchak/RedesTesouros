@@ -59,14 +59,21 @@ void receba(const char *nome_arquivo, gerenciador_t *gerenciador) {
     int resposta;
 
     // primeiro, receber tamanho do arquivo e ver se cabe no disco
+    // também é possível receber aviso de que não tem permissão para abrir
     size_t tamanho_arq;
     do {
         msg_recebida = recebe_mensagem(gerenciador, &resposta);
         if (resposta == -1)
             continue;
 
-        if (msg_recebida && msg_recebida->tipo == TIPO_TAMANHO)
-            tamanho_arq = *(size_t *) msg_recebida->dados;
+        if (msg_recebida) {
+            if (msg_recebida->tipo == TIPO_TAMANHO)
+                tamanho_arq = *(size_t *) msg_recebida->dados;
+            else if (msg_recebida->tipo == TIPO_ERRO && *(int *) msg_recebida->dados == ERRO_PERMISSAO) {
+                printf("SERVIDOR AVISOU QUE NÃO TEM PERMISSÃO PARA ABRIR ARQUIVO! Continuando jogo.\n");
+                return;
+            }
+        }
         
         // enviar ack
         if (resposta == 0) {
@@ -90,7 +97,7 @@ void receba(const char *nome_arquivo, gerenciador_t *gerenciador) {
     if (tamanho_arq > espaco_livre) {
         // avisando servidor
         int dados_erro = ERRO_ESPACO;
-        envia_mensagem(gerenciador, sizeof(int), TIPO_ERRO, (void *) &dados_erro);
+        envia_mensagem(gerenciador, sizeof(int), TIPO_ERRO, (uchar_t *) &dados_erro);
         printf("Infelizmente, o arquivo não cabe no disco :( Vamos contunuar o jogo\n");
         return;
     }
