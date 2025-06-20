@@ -26,7 +26,7 @@ clean:
 	@rm -f *~ *.bak
 
 purge:  clean
-	@rm -f $(PROG) $(OBJS) core a.out $(DISTDIR) $(DISTDIR).tgz
+	@rm -f $(PROG) $(OBJS) core a.out $(DISTDIR) $(DISTDIR).tgz *.txt *.jpg *.mp4
 
 dist: purge
 	@ln -s . $(DISTDIR)
