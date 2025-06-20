@@ -26,7 +26,7 @@ typedef struct {
 #define TAM_SEQUENCIA (1 << 5)
 
 // tempo do time out (em segundos)
-#define TIMEOUT 2
+#define TIMEOUT 10
 
 #define BUFFER_SIZE (1 << 7) - 1
 
