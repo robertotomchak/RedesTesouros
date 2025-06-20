@@ -33,7 +33,7 @@ typedef struct {
 } mensagem_t;
 
 // metadados + dados de 2^7 bytes;
-#define PROTOCOLO_TAM_MAX sizeof(protocolo_t) + (1 << 7)
+#define PROTOCOLO_TAM_MAX (sizeof(protocolo_t) + (1 << 7))
 
 // marcador de início de mensagem
 #define MARCADOR_INICIO 0b01111110

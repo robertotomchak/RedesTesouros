@@ -78,6 +78,7 @@ void envia_rede(int socket, protocolo_t *protocolo) {
 void recebe_rede(int socket, uchar_t *protocolo_bruto) {
     // considera que mensagem foi enviada colocando bytes de redundância para evitar problemas
     uchar_t buffer[2*(PROTOCOLO_TAM_MAX)];
+    memset(buffer, 0, 2*(PROTOCOLO_TAM_MAX));
     recv(socket, buffer, 2*(PROTOCOLO_TAM_MAX), 0);
     for (int i = 0; i < PROTOCOLO_TAM_MAX; i++)
         protocolo_bruto[i] = buffer[2*i];
