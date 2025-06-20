@@ -65,6 +65,7 @@ void envia_rede(int socket, protocolo_t *protocolo) {
     uchar_t tam = sizeof(protocolo_t) + protocolo->tamanho;
     // cria buffer para enviar e insere bytes para evitar problemas
     uchar_t buffer[2*(PROTOCOLO_TAM_MAX)];
+    memset(buffer, 0, 2*(PROTOCOLO_TAM_MAX));
     uchar_t *protocolo_bruto = (uchar_t *) protocolo;
     for (int i = 0; i < tam; i++) {
         buffer[2*i] = protocolo_bruto[i];
