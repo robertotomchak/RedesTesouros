@@ -136,7 +136,7 @@ void receba(const char *nome_arquivo, gerenciador_t *gerenciador) {
 
     // resultado do tempo e taxa de transmissão
     printf("Tempo total: %f segundos\n", total_time);
-    printf("Taxa média de transmissão: %.0f B/s\n", tamanho_arq / total_time);
+    printf("Taxa média de transmissão: %.2f MB/s\n", tamanho_arq / total_time / (1024*1024));
 }
 
 // função principal do cliente 
