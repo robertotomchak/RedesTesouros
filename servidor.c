@@ -71,12 +71,12 @@ void envia(const char *nome_arquivo, gerenciador_t *gerenciador) {
 }
 
 // função geral que comanda o lado servidor
-void servidor(){
+void servidor(char *rede_envia){
     tabuleiro_t *tabuleiro = inicializa_tabuleiro();
     sorteia_tesouros(tabuleiro);
     
     gerenciador_t *gerenciador = malloc(sizeof(gerenciador_t));
-    inicia_gerenciador(gerenciador, REDE_ENVIA);
+    inicia_gerenciador(gerenciador, rede_envia);
 
     mensagem_t *msg_recebida, *msg_ack;
     int resposta, erro;

@@ -140,10 +140,10 @@ void receba(const char *nome_arquivo, gerenciador_t *gerenciador) {
 }
 
 // função principal do cliente 
-void cliente(){
+void cliente(char *rede_recebe){
     tabuleiro_t *tabuleiro = inicializa_tabuleiro();
     gerenciador_t *gerenciador = malloc(sizeof(gerenciador_t));
-    inicia_gerenciador(gerenciador, REDE_RECEBE);
+    inicia_gerenciador(gerenciador, rede_recebe);
 
     char comando;
     mensagem_t *msg_recebida, *msg_ack;
@@ -166,6 +166,7 @@ void cliente(){
                 comando = linha[0];
             }
         }
+        printf("\n");
         
         // traduz o comando do input em tipo para a mensagem
         int tipo_comando = tipo_de_movimento(comando);

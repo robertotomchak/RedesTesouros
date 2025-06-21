@@ -11,6 +11,10 @@
 #include <unistd.h>
 #include "tipo.h"
 
+// serve para pegar o nome da rede de cada máquina
+void parametro_rede(char *nome_rede);
+
+// pega o tamnho do arquivo tesouro
 size_t tamanho_arquivo(const char *caminho_arquivo);
 
 // define se valor deve ser imprimido em termos de B, KB, MB ou GB

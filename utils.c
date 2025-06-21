@@ -1,4 +1,16 @@
 #include "utils.h"
+void parametro_rede(char *nome_rede){
+    FILE *arq = fopen("rede.config", "r");
+    if (!arq) {
+        perror("Erro ao abrir o arquivo");
+        return;
+    }
+
+    if (fgets(nome_rede, 30, arq)) 
+        nome_rede[strcspn(nome_rede, "\n")] = '\0';
+    
+    fclose(arq);
+}
 
 size_t tamanho_arquivo(const char *caminho_arquivo) {
     struct stat st;

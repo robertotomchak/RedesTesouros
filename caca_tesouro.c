@@ -85,6 +85,7 @@ void sorteia_tesouros (tabuleiro_t *tabuleiro){
             i++;
         }
     }
+    printf("\n");
 
     exibe_tabuleiro(tabuleiro);
 
@@ -93,14 +94,16 @@ void sorteia_tesouros (tabuleiro_t *tabuleiro){
 
 // mostra o tabuleiro conforme se é servidor ou cliente
 void exibe_tabuleiro(tabuleiro_t *tabuleiro){
-    printf("   ");
+    printf("    ");
     for (int i = 0; i < TAM_MAX; i++) {
         printf("%d ", i);
     }
     printf("\n");
+    printf("\n");
+
 
     for (int i = TAM_MAX - 1; i >= 0; i--) {
-        printf("%d  ", i);
+        printf("%d   ", i);
         for (int j = 0; j < TAM_MAX; j++) {
             // confere se é a mesma posição do jogador
             if(i == tabuleiro->pos_y && j == tabuleiro->pos_x)

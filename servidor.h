@@ -8,12 +8,10 @@
 #include <sys/statvfs.h>
 #include <sys/stat.h>
 
-#define REDE_ENVIA "enp7s0"
-
 // função que faz o envio do arquivo para o cliente
 void envia(const char *nome_arquivo, gerenciador_t *gerenciador);
 
 // função geral que comanda o lado servidor
-void servidor();
+void servidor(char *rede_envia);
 
 #endif

@@ -10,8 +10,6 @@
 #include <unistd.h>
 #include <sys/statvfs.h>
 
-#define REDE_RECEBE "enx00e04c68011f"
-
 void abrir_arquivo(const char *arquivo);
 
 // função apenas para enviar comando para o servidor
@@ -21,6 +19,6 @@ void envia_comando (gerenciador_t *gerenciador, int movimento);
 void receba(const char *nome_arquivo, gerenciador_t *gerenciador);
 
 // função principal do cliente 
-void cliente();
+void cliente(char *rede_recebe);
 
 #endif
