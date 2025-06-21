@@ -46,7 +46,10 @@ void envia(const char *nome_arquivo, gerenciador_t *gerenciador) {
         while (erro) {
             reenvia(gerenciador);
             erro = espera_ack(gerenciador, &msg_ack);
+            if (erro == 1)
+                libera_mensagem(msg_ack);
         }
+        libera_mensagem(msg_ack)
         bytes_enviados += bytes_lidos;
         imprime_progresso_envio(nome_arquivo, bytes_enviados, tamanho_arq);
     }
@@ -56,7 +59,10 @@ void envia(const char *nome_arquivo, gerenciador_t *gerenciador) {
     while (erro) {
         reenvia(gerenciador);
         erro = espera_ack(gerenciador, &msg_ack);
+        if (erro == 1)
+            libera_mensagem(msg_ack);
     }
+    libera_mensagem(msg_ack);
     fclose(f);
     printf("\r%s enviado com sucesso       \n", nome_arquivo);
 }

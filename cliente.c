@@ -177,7 +177,7 @@ void cliente(){
             reenvia(gerenciador);
             erro = espera_ack(gerenciador, &msg_ack);
             if (erro == 1)
-                free(msg_ack);
+                libera_mensagem(msg_ack);
         }
         msg_recebida = msg_ack;
         int sucesso_nack = 0;
@@ -232,7 +232,7 @@ void cliente(){
                     sucesso_nack = 1;  // sai do loop em caso de erro
             }
         }
-        free(msg_ack);
+        libera_mensagem(msg_ack);
     }
     
     libera_tabuleiro(tabuleiro);
