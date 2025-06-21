@@ -173,6 +173,7 @@ mensagem_t *recebe_mensagem(gerenciador_t *gerenciador, int *resposta) {
     // se for a mesma sequencia da última, não processa e devolta ack
     if (gerenciador->ultima_recebida && gerenciador->ultima_recebida->sequencia == nova_mensagem->sequencia) {
         *resposta = 0;
+        libera_mensagem(nova_mensagem);
         return NULL;
     }
     // se for primeira mensagem e sequencia = 0 ou sequencia = sequencia_anterior + 1
@@ -184,6 +185,7 @@ mensagem_t *recebe_mensagem(gerenciador_t *gerenciador, int *resposta) {
     if (nova_mensagem->sequencia != sequencia_correta) {
         // sequência incorreta -> enviar nack
         *resposta = 1;
+        libera_mensagem(nova_mensagem);
         return NULL;
     }
 
@@ -261,8 +263,8 @@ parâmetros:
 void libera_gerenciador(gerenciador_t *gerenciador) {
     // libera mensagens (se necessário)
     if (gerenciador->ultima_enviada)
-        free(gerenciador->ultima_enviada);
+        libera_mensagem(gerenciador->ultima_enviada);
     if (gerenciador->ultima_recebida)
-        free(gerenciador->ultima_recebida);
+        libera_mensagem(gerenciador->ultima_recebida);
     free(gerenciador);
 }
