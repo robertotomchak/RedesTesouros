@@ -169,5 +169,9 @@ void libera_tabuleiro(tabuleiro_t *tabuleiro) {
         free(tabuleiro->matriz[i]);
     }
     free(tabuleiro->matriz);
+    for (int i = 0; i < TAM_MAX; i++) {
+        free(tabuleiro->deslocamento[i]);
+    }
+    free(tabuleiro->deslocamento);
     free(tabuleiro);
 }

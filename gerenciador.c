@@ -131,8 +131,10 @@ int envia_mensagem(gerenciador_t *gerenciador, uchar_t tamanho, uchar_t tipo, uc
     libera_protocolo(novo_protocolo);
 
     // mensagens de ack/nack não são salvas pra sequência
-    if (eh_ack(nova_mensagem) || eh_nack(nova_mensagem))
+    if (eh_ack(nova_mensagem) || eh_nack(nova_mensagem)) {
+        libera_mensagem(nova_mensagem);
         return 0;
+    }
 
     if (gerenciador->ultima_enviada)
         libera_mensagem(gerenciador->ultima_enviada);
