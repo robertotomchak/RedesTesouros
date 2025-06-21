@@ -114,7 +114,9 @@ void exibe_tabuleiro(tabuleiro_t *tabuleiro){
             else if ((tabuleiro->matriz[i][j] == 'T')){
                 for (int k = 0; k < TAM_MAX; k++) {
                     if (tabuleiro->tesouros[k].posicao == i * TAM_MAX + j) {
-                        printf("%s ", sem_extensao(tabuleiro->tesouros[k].arquivo));
+                        char *temp = sem_extensao(tabuleiro->tesouros[k].arquivo);
+                        printf("%s ", temp);
+                        free(temp);
                     }
                 }
             }
