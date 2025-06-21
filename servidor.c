@@ -49,7 +49,7 @@ void envia(const char *nome_arquivo, gerenciador_t *gerenciador) {
             if (erro == 1)
                 libera_mensagem(msg_ack);
         }
-        libera_mensagem(msg_ack)
+        libera_mensagem(msg_ack);
         bytes_enviados += bytes_lidos;
         imprime_progresso_envio(nome_arquivo, bytes_enviados, tamanho_arq);
     }
