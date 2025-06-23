@@ -152,7 +152,7 @@ void cliente(char *rede_recebe){
 
     char linha[10];
 
-    while (tabuleiro->cont_tesouros < 8) {
+    while (tabuleiro->cont_tesouros < MAX_TESOUROS) {
         printf("TESOUROS ENCONTRADOS: %d\n", tabuleiro->cont_tesouros);
         exibe_tabuleiro(tabuleiro);
         printf("Digite comando (w/a/s/d): ");
