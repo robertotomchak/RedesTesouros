@@ -82,7 +82,7 @@ void servidor(char *rede_envia){
     int resposta, erro;
 
     // laço principal do jogo
-    while (tabuleiro->cont_tesouros < 8) {
+    while (tabuleiro->cont_tesouros < MAX_TESOUROS) {
         do {
             msg_recebida = recebe_mensagem(gerenciador, &resposta);
             // mensagem recebida com erro, enviar nack

@@ -3,16 +3,16 @@
 // função que inicializa o tabuleiro
 tabuleiro_t *inicializa_tabuleiro (){
     tabuleiro_t *tabuleiro = malloc(sizeof(tabuleiro_t));
-    tabuleiro->matriz = malloc(TAM_MAX * sizeof(char*));
-    tabuleiro->deslocamento = malloc(TAM_MAX * sizeof(char*));
+    tabuleiro->matriz = malloc(MAX_TESOUROS * sizeof(char*));
+    tabuleiro->deslocamento = malloc(MAX_TESOUROS * sizeof(char*));
 
-    for (int i = 0; i < TAM_MAX; i++) {
-        tabuleiro->matriz[i] = malloc(TAM_MAX * sizeof(char));
-        tabuleiro->deslocamento[i] = malloc(TAM_MAX * sizeof(char));
+    for (int i = 0; i < MAX_TESOUROS; i++) {
+        tabuleiro->matriz[i] = malloc(MAX_TESOUROS * sizeof(char));
+        tabuleiro->deslocamento[i] = malloc(MAX_TESOUROS * sizeof(char));
     }
     
-    for (int i = 0; i < TAM_MAX; i++) {
-        for (int j = 0; j < TAM_MAX; j++) {
+    for (int i = 0; i < MAX_TESOUROS; i++) {
+        for (int j = 0; j < MAX_TESOUROS; j++) {
             tabuleiro->matriz[i][j] = '.';
             tabuleiro->deslocamento[i][j] = 0;
         }
@@ -40,11 +40,11 @@ void sorteia_tesouros (tabuleiro_t *tabuleiro){
    }
    
    // armazena todos os nomes dos arquivos em um vetor
-    char arquivos[TAM_MAX][64];
+    char arquivos[MAX_TESOUROS][64];
     int total_arquivos = 0;
 
     while ((entrada = readdir(dir)) != NULL) {
-        if (entrada->d_type == DT_REG && total_arquivos < TAM_MAX) {
+        if (entrada->d_type == DT_REG && total_arquivos < MAX_TESOUROS) {
             strcpy(arquivos[total_arquivos], entrada->d_name);
             total_arquivos++;
         }
@@ -55,16 +55,16 @@ void sorteia_tesouros (tabuleiro_t *tabuleiro){
    srand(time(NULL));
    printf("Tesouros:\n");
    int i = 0;
-    while (i < TAM_MAX){
-        lin = rand() % TAM_MAX;
-        col = rand() % TAM_MAX;
+    while (i < MAX_TESOUROS){
+        lin = rand() % MAX_TESOUROS;
+        col = rand() % MAX_TESOUROS;
 
         // confere se no lugar sorteado ja foi encontrado um tesouro ou se eh diferente da posição (0,0)
         if (tabuleiro->matriz[lin][col] != 'T' && !(lin == 0 && col == 0)) {
             tabuleiro->matriz[lin][col] = 'T';
 
             // calcula a posição considerando que existe 64 (0-63)
-            tabuleiro->tesouros[i].posicao = lin * TAM_MAX + col;
+            tabuleiro->tesouros[i].posicao = lin * MAX_TESOUROS + col;
 
             // garante que o espaço esteja se lixo de memória
             memset(tabuleiro->tesouros[i].arquivo, 0, sizeof(tabuleiro->tesouros[i].arquivo));
@@ -95,16 +95,16 @@ void sorteia_tesouros (tabuleiro_t *tabuleiro){
 // mostra o tabuleiro conforme se é servidor ou cliente
 void exibe_tabuleiro(tabuleiro_t *tabuleiro){
     printf("    ");
-    for (int i = 0; i < TAM_MAX; i++) {
+    for (int i = 0; i < MAX_TESOUROS; i++) {
         printf("%d ", i);
     }
     printf("\n");
     printf("\n");
 
 
-    for (int i = TAM_MAX - 1; i >= 0; i--) {
+    for (int i = MAX_TESOUROS - 1; i >= 0; i--) {
         printf("%d   ", i);
-        for (int j = 0; j < TAM_MAX; j++) {
+        for (int j = 0; j < MAX_TESOUROS; j++) {
             // confere se é a mesma posição do jogador
             if(i == tabuleiro->pos_y && j == tabuleiro->pos_x)
                 printf("J ");
@@ -115,8 +115,8 @@ void exibe_tabuleiro(tabuleiro_t *tabuleiro){
 
             // vê se é tesouro e então encontra o seu respectivo tesouro
             else if ((tabuleiro->matriz[i][j] == 'T')){
-                for (int k = 0; k < TAM_MAX; k++) {
-                    if (tabuleiro->tesouros[k].posicao == i * TAM_MAX + j) {
+                for (int k = 0; k < MAX_TESOUROS; k++) {
+                    if (tabuleiro->tesouros[k].posicao == i * MAX_TESOUROS + j) {
                         char *temp = sem_extensao(tabuleiro->tesouros[k].arquivo);
                         printf("%s ", temp);
                         free(temp);
@@ -158,8 +158,8 @@ const char* movimentacao(tabuleiro_t *tabuleiro, const char comando) {
         tabuleiro->cont_tesouros++;
 
         // busca qual é o tesouro com base em sua posição em relação ao local encontrado
-        for (int i = 0; i < TAM_MAX; i++) {
-            if (tabuleiro->tesouros[i].posicao == y * TAM_MAX + x) {
+        for (int i = 0; i < MAX_TESOUROS; i++) {
+            if (tabuleiro->tesouros[i].posicao == y * MAX_TESOUROS + x) {
                 return tabuleiro->tesouros[i].arquivo;
             }
         }
@@ -170,11 +170,11 @@ const char* movimentacao(tabuleiro_t *tabuleiro, const char comando) {
 }
 
 void libera_tabuleiro(tabuleiro_t *tabuleiro) {
-    for (int i = 0; i < TAM_MAX; i++) {
+    for (int i = 0; i < MAX_TESOUROS; i++) {
         free(tabuleiro->matriz[i]);
     }
     free(tabuleiro->matriz);
-    for (int i = 0; i < TAM_MAX; i++) {
+    for (int i = 0; i < MAX_TESOUROS; i++) {
         free(tabuleiro->deslocamento[i]);
     }
     free(tabuleiro->deslocamento);
