@@ -194,13 +194,9 @@ void cliente(char *rede_recebe){
                 case TIPO_VIDEO_ACK:
                 case TIPO_TEXTO_ACK:
                     tabuleiro->cont_tesouros++;
-                    // envia ack para o servidor dizendo que recebeu o comando
+                    // envia ack para o servidor dizendo que recebeu o comandod
+                    
                     envia_mensagem(gerenciador, 0, TIPO_ACK, NULL);
-                    erro = espera_ack(gerenciador, &msg_ack);
-                    while (erro) {
-                        reenvia(gerenciador);
-                        erro = espera_ack(gerenciador, &msg_ack);
-                    }
                     // permite movimentar no tabuleiro
                     movimentacao(tabuleiro, comando);
                     exibe_tabuleiro(tabuleiro);
