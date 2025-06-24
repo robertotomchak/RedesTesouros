@@ -11,7 +11,8 @@
 #include "utils.h"
 
 #define BUFFER_SIZE (1 << 7) - 1
-#define MAX_TESOUROS 8
+#define NUM_TESOUROS 8
+#define TAM_TABULEIRO 8
 
 // definições para usar na função de movimentação
 #define MOVIMENTO_INVALIDO "invalido"
@@ -29,7 +30,7 @@ typedef struct {
     uchar_t pos_y;                   
     char **matriz;                  // é o proprio tabuleiro, onde "." é sem tesouro e T o contrario
     char **deslocamento;            // matriz booleana, onde 0 é que caminho desconhecido e 1 o contrario
-    tesouro_t tesouros[MAX_TESOUROS];    // vetor de todos os 8 tesouros
+    tesouro_t tesouros[NUM_TESOUROS];    // vetor de todos os 8 tesouros
     uchar_t cont_tesouros;          // quantidade de tesouros encontrados
 } tabuleiro_t;
 

@@ -152,7 +152,7 @@ void cliente(char *rede_recebe){
 
     char linha[10];
 
-    while (tabuleiro->cont_tesouros < MAX_TESOUROS) {
+    while (tabuleiro->cont_tesouros < NUM_TESOUROS) {
         printf("TESOUROS ENCONTRADOS: %d\n", tabuleiro->cont_tesouros);
         exibe_tabuleiro(tabuleiro);
         printf("Digite comando (w/a/s/d): ");
@@ -196,6 +196,7 @@ void cliente(char *rede_recebe){
                     tabuleiro->cont_tesouros++;
                     // envia ack para o servidor dizendo que recebeu o comando
                     envia_mensagem(gerenciador, 0, TIPO_ACK, NULL);
+                    erro = espera_ack(gerenciador, &msg_ack);
                     while (erro) {
                         reenvia(gerenciador);
                         erro = espera_ack(gerenciador, &msg_ack);
